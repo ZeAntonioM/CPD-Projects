@@ -357,13 +357,6 @@ int main (int argc, char *argv[])
 	int matrix_size;
 	int block_size;
 	
-	cout << "Please input a size for the square matrix: ";
-	cin >> matrix_size;
-	cout << "Thank you! Now input a size for the blocks on the block matrix multiplication: ";
-	cin >> block_size;
-	cout << "Thank you again!" << endl << endl;
-	cout << "Calculating... \n\n" << endl; 
-
 	ret = PAPI_library_init( PAPI_VER_CURRENT );
 	if ( ret != PAPI_VER_CURRENT )
 		std::cout << "FAIL" << endl;
