@@ -205,8 +205,124 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 
     
 }
+//!/////////// PART 2 OF THE PROJECT //////////////////
 
+void OnMultLineParallel1(int m_ar, int m_br)
+{
+    SYSTEMTIME Time1, Time2;
+    char st[100];
+    double temp;
+    int i, j, k;
 
+    double *pha, *phb, *phc;
+
+    pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+    phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+    phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
+
+    for(i=0; i<m_ar; i++){
+        for(j=0; j<m_ar; j++){
+            pha[i*m_ar + j] = (double)1.0;
+		}
+	}			
+
+    for(i=0; i<m_br; i++){
+        for(j=0; j<m_br; j++){
+            phb[i*m_br + j] = (double)(i+1);
+		}
+	}
+
+	for(i=0; i<m_br; i++){
+        for(j=0; j<m_br; j++){
+            phc[i*m_br + j] = (double)0.0;
+		}
+	}
+
+    Time1 = clock();
+
+	#pragma omp parallel for
+    for(i=0; i<m_ar; i++){
+        for(k=0; k<m_ar; k++) {
+            for(j=0; j<m_br; j++) {
+                phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+			}
+		}
+	}
+
+    Time2 = clock();
+    sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+    cout << st;
+
+    cout << "Result matrix: " << endl;
+    for(i=0; i<1; i++)
+        for(j=0; j<min(10,m_br); j++)
+            cout << phc[j] << " ";
+
+    cout << endl;
+
+    free(pha);
+    free(phb);
+    free(phc);
+}
+
+void OnMultLineParallel2(int m_ar, int m_br)
+{
+    SYSTEMTIME Time1, Time2;
+    char st[100];
+    double temp;
+    int i, j, k;
+
+    double *pha, *phb, *phc;
+
+    pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+    phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+    phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
+
+    for(i=0; i<m_ar; i++){
+        for(j=0; j<m_ar; j++){
+            pha[i*m_ar + j] = (double)1.0;
+		}
+	}			
+
+    for(i=0; i<m_br; i++){
+        for(j=0; j<m_br; j++){
+            phb[i*m_br + j] = (double)(i+1);
+		}
+	}
+
+	for(i=0; i<m_br; i++){
+        for(j=0; j<m_br; j++){
+            phc[i*m_br + j] = (double)0.0;
+		}
+	}
+
+    Time1 = clock();
+
+	#pragma omp parallel 
+    for(i=0; i<m_ar; i++){
+        for(k=0; k<m_ar; k++) {
+			#pragma omp for
+            for(j=0; j<m_br; j++) {
+                phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+			}
+		}
+	}
+
+    Time2 = clock();
+    sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+    cout << st;
+
+    cout << "Result matrix: " << endl;
+    for(i=0; i<1; i++)
+        for(j=0; j<min(10,m_br); j++)
+            cout << phc[j] << " ";
+
+    cout << endl;
+
+    free(pha);
+    free(phb);
+    free(phc);
+}
 
 void handle_error (int retval)
 {
@@ -234,7 +350,7 @@ int main (int argc, char *argv[])
 	int lin, col, blockSize;
 	int op;
 	
-	//int EventSet = PAPI_NULL;
+	int EventSet = PAPI_NULL;
   	long long values[2];
   	int ret;
 
@@ -288,7 +404,23 @@ int main (int argc, char *argv[])
 				OnMult(lin, col);
 				break;
 			case 2:
-				OnMultLine(lin, col);  
+				cout << "1. Non Parallel" << endl
+					 << "2. Parallel configuration 1" << endl
+					 << "3. Parallel configuration 2" << endl;
+				cin >> op;
+				do{
+					switch (op){
+						case 1:
+							OnMultLine(lin, col);
+							break;
+						case 2:
+							OnMultLineParallel1(lin, col);
+							break;
+						case 3:
+							OnMultLineParallel2(lin, col);
+							break;
+					}	
+				} while (op != 0);
 				break;
 			case 3:
 				cout << "Block Size? ";
