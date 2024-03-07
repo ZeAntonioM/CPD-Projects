@@ -420,6 +420,8 @@ int main (int argc, char *argv[])
 							OnMultLineParallel2(lin, col);
 							break;
 					}	
+
+					op = 0;
 				} while (op != 0);
 				break;
 			case 3:
