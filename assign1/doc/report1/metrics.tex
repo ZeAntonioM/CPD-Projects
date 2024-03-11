@@ -1,0 +1,37 @@
+\section{Performance Metrics}
+\label{sec:performanceMetrics}
+
+To assess the performance of the C++ implementations, we 
+utilized the PAPI (Performance API), providing us with comprehensive 
+hardware performance monitoring. Our evaluation comprised the 
+following key metrics:
+
+\begin{itemize}
+\item \textbf{Execution Time} - This metric quantifies the 
+duration taken by the program to 
+complete its execution. It serves as a fundamental 
+benchmark for computing overall performance 
+and facilitating comparative analysis.
+
+\item \textbf{L1 and L2 Cache Misses} - These metrics 
+quantify the number of cache misses occurring in the 
+L1 and L2 caches, respectively. A cache miss arises 
+when the requested data is not found in the cache and 
+require retrieval from main memory. This metric 
+provides valuable insights into the memory access patterns
+of the program, as frequent cache misses can lead to 
+increased execution times, which means that 
+minimizing cache misses is crucial for optimizing 
+program performance!
+
+\item \textbf{MFlops} - This metric, derived from "\textbf{M}illion 
+\textbf{F}loating-point \textbf{O}perations \textbf{p}er \textbf{S}econd", provides a measure of a 
+computer's performance in executing floating-point arithmetic 
+operations. It quantifies the rate at which a system can 
+perform such operations and is calculated using the following formula:
+    \begin{equation}
+        MFlops = \frac{Number\ of\ Floating\ Point\ Operations}{Execution\ Time\ in\ Seconds} \times 10^{-6}
+    \end{equation}
+\end{itemize}
+
+\subsection{Hardware used}
