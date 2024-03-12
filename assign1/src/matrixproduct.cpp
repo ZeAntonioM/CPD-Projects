@@ -6,6 +6,7 @@
 #include <papi.h>
 #include <chrono>
 #include <math.h>
+#include <omp.h>
 
 using namespace std;
 using namespace std::chrono;
@@ -259,15 +260,17 @@ void OnMultLineParallel1(int m_ar, int m_br)
 
     Time2 = clock();
     auto time = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
+    /*
     sprintf(st, "Time: %3.3f seconds\n", time);
     cout << st;
+    */
     auto stop = high_resolution_clock::now();
 
     // Calculate the duration
     auto duration = duration_cast<microseconds>(stop - start);
 
     // Output the time taken
-    cout << "Time (chrono): " << duration.count() << " microseconds." << endl;
+    cout << "Time (chrono): " << duration.count()*10e6 << " seconds." << endl;
     
     printf("MFLOPS: %f\n", (2*pow(m_ar, 3)/time)*10e-6);
 
@@ -330,8 +333,10 @@ void OnMultLineParallel2(int m_ar, int m_br)
 
     Time2 = clock();
     auto time = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
+    /*
     sprintf(st, "Time: %3.3f seconds\n", time);
     cout << st;
+    */
 
     // Measure the end time
     auto stop = high_resolution_clock::now();
@@ -340,7 +345,7 @@ void OnMultLineParallel2(int m_ar, int m_br)
     auto duration = duration_cast<microseconds>(stop - start);
 
     // Output the time taken
-    cout << "Time (chrono): " << duration.count() << " microseconds." << endl;
+    cout << "Time (chrono): " << duration.count()*1000 << " seconds." << endl;
 
     printf("MFLOPS: %f\n", (2*pow(m_ar, 3)/time)*10e-6);
 
