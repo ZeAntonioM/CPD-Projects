@@ -209,6 +209,10 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 
 void OnMultLineParallel1(int m_ar, int m_br)
 {
+// Measure the start time
+    auto start = high_resolution_clock::now();
+
+    // Measure the end time
     SYSTEMTIME Time1, Time2;
     char st[100];
     double temp;
@@ -252,6 +256,13 @@ void OnMultLineParallel1(int m_ar, int m_br)
     Time2 = clock();
     sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
     cout << st;
+    auto stop = high_resolution_clock::now();
+
+    // Calculate the duration
+    auto duration = duration_cast<microseconds>(stop - start);
+
+    // Output the time taken
+    cout << "Time taken for matrix multiplication: " << duration.count() << " microseconds." << endl;
 
     cout << "Result matrix: " << endl;
     for(i=0; i<1; i++)
@@ -267,6 +278,8 @@ void OnMultLineParallel1(int m_ar, int m_br)
 
 void OnMultLineParallel2(int m_ar, int m_br)
 {
+	// Measure the start time
+    auto start = high_resolution_clock::now();
     SYSTEMTIME Time1, Time2;
     char st[100];
     double temp;
@@ -311,6 +324,15 @@ void OnMultLineParallel2(int m_ar, int m_br)
     Time2 = clock();
     sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
     cout << st;
+
+    // Measure the end time
+    auto stop = high_resolution_clock::now();
+
+    // Calculate the duration
+    auto duration = duration_cast<microseconds>(stop - start);
+
+    // Output the time taken
+    cout << "Time taken for matrix multiplication: " << duration.count() << " microseconds." << endl;
 
     cout << "Result matrix: " << endl;
     for(i=0; i<1; i++)
