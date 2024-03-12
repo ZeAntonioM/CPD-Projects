@@ -259,7 +259,6 @@ void OnMultLineParallel1(int m_ar, int m_br)
 	}
 
     Time2 = clock();
-    auto time = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
     /*
     sprintf(st, "Time: %3.3f seconds\n", time);
     cout << st;
@@ -268,11 +267,12 @@ void OnMultLineParallel1(int m_ar, int m_br)
 
     // Calculate the duration
     auto duration = duration_cast<microseconds>(stop - start);
+    auto time = duration.count()/(1e6);
 
     // Output the time taken
-    cout << "Time (chrono): " << duration.count()/(1e6) << " seconds." << endl;
+    cout << "Time (chrono): " << time << " seconds." << endl;
     
-    printf("MFLOPS: %f\n", (2*pow(m_ar, 3)/time)*10e-6);
+    printf("GFLOPS: %f\n", (2*pow(m_ar, 3)/time)*1e-9);
 
     cout << "Result matrix: " << endl;
     for(i=0; i<1; i++)
@@ -332,7 +332,6 @@ void OnMultLineParallel2(int m_ar, int m_br)
 	}
 
     Time2 = clock();
-    auto time = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
     /*
     sprintf(st, "Time: %3.3f seconds\n", time);
     cout << st;
@@ -343,11 +342,12 @@ void OnMultLineParallel2(int m_ar, int m_br)
 
     // Calculate the duration
     auto duration = duration_cast<microseconds>(stop - start);
+    auto time = duration.count()/(1e6);
 
     // Output the time taken
-    cout << "Time (chrono): " << duration.count()/(1e6) << " seconds." << endl;
+    cout << "Time (chrono): " << time << " seconds." << endl;
 
-    printf("MFLOPS: %f\n", (2*pow(m_ar, 3)/time)*10e-6);
+    printf("GFLOPS: %f\n", (2*pow(m_ar, 3)/time)*1e-9);
 
     cout << "Result matrix: " << endl;
     for(i=0; i<1; i++)
