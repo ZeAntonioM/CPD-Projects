@@ -53,7 +53,7 @@ fn on_mult(matrix_size: usize){
         print!("{} ", phc[i]);
     }
     println!();
-    println!("Elapsed time: {} seconds and {} milliseconds", elapsed.as_secs(), elapsed.as_millis());
+    println!("Elapsed time: {} seconds and {} milliseconds", elapsed.as_secs(), elapsed.as_millis() - (elapsed.as_secs()*1000) as u128);
     println!();
 }
 

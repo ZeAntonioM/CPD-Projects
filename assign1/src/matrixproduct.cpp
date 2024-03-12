@@ -244,7 +244,7 @@ void OnMultLineParallel1(int m_ar, int m_br)
 
     Time1 = clock();
 
-	#pragma omp parallel for
+	#pragma omp parallel for private(j, k)
     for(i=0; i<m_ar; i++){
         for(k=0; k<m_ar; k++) {
             for(j=0; j<m_br; j++) {
@@ -311,7 +311,7 @@ void OnMultLineParallel2(int m_ar, int m_br)
 
     Time1 = clock();
 
-	#pragma omp parallel 
+	#pragma omp parallel private(i, k) 
     for(i=0; i<m_ar; i++){
         for(k=0; k<m_ar; k++) {
 			#pragma omp for
