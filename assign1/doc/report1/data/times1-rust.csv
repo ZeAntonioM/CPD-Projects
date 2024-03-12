@@ -1,0 +1,8 @@
+Prog language,Dimension,Time
+Rust,600x600,0.189
+Rust,1000x1000,1.142
+Rust,1400x1400,3.457
+Rust,1800x1800,17.547
+Rust,2200x2200,37.843
+Rust,2600x2600,69.137
+Rust,3000x3000,115.92

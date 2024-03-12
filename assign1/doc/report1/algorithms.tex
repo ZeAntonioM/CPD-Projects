@@ -1,5 +1,4 @@
 \section{Algorithms}
-\label{sec:algorithms}
 In order to understand the influence of different algorithms on 
 processor performance during matrix multiplication, we implemented 
 three algorithms that vary primarily in their memory access patterns.
@@ -18,7 +17,6 @@ them suitable for investigating how memory access patterns affect performance.
 \end{itemize}
 
 \subsection{Basic matrix multiplication algorithm}
-\label{subsec:basicMatrixMultiplication}
 
 This algorithm implements a basic matrix multiplication approach, 
 where each element in the resulting matrix is computed by 
@@ -38,7 +36,6 @@ where $C$ is the resulting matrix, $A$ and $B$ are the input matrices, and $n$ i
 
 
 \subsection{Line matrix multiplication algorithm}
-\label{subsec:lineMatrixMultiplication}
 
 Instead of directly multiplying a row of the 
 first matrix with a column of the second, this algorithm
@@ -56,7 +53,6 @@ algorithm in practical scenarios.
 
 
 \subsection{Block matrix multiplication algorithm}
-\label{subsec:blockMatrixMultiplication}
 
 The Block Matrix Multiplication algorithm is designed 
 to further optimize memory access patterns by dividing 
