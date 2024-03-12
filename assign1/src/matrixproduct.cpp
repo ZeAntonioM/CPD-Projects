@@ -4,8 +4,12 @@
 #include <time.h>
 #include <cstdlib>
 #include <papi.h>
+#include <chrono>
+#include <math.h>
 
 using namespace std;
+using namespace std::chrono;
+
 
 #define SYSTEMTIME clock_t
 
@@ -254,7 +258,8 @@ void OnMultLineParallel1(int m_ar, int m_br)
 	}
 
     Time2 = clock();
-    sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+    auto time = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
+    sprintf(st, "Time: %3.3f seconds\n", time);
     cout << st;
     auto stop = high_resolution_clock::now();
 
@@ -262,7 +267,9 @@ void OnMultLineParallel1(int m_ar, int m_br)
     auto duration = duration_cast<microseconds>(stop - start);
 
     // Output the time taken
-    cout << "Time taken for matrix multiplication: " << duration.count() << " microseconds." << endl;
+    cout << "Time (chrono): " << duration.count() << " microseconds." << endl;
+    
+    printf("MFLOPS: %f\n", (2*pow(m_ar, 3)/time)*10e-6);
 
     cout << "Result matrix: " << endl;
     for(i=0; i<1; i++)
@@ -322,7 +329,8 @@ void OnMultLineParallel2(int m_ar, int m_br)
 	}
 
     Time2 = clock();
-    sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+    auto time = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
+    sprintf(st, "Time: %3.3f seconds\n", time);
     cout << st;
 
     // Measure the end time
@@ -332,7 +340,9 @@ void OnMultLineParallel2(int m_ar, int m_br)
     auto duration = duration_cast<microseconds>(stop - start);
 
     // Output the time taken
-    cout << "Time taken for matrix multiplication: " << duration.count() << " microseconds." << endl;
+    cout << "Time (chrono): " << duration.count() << " microseconds." << endl;
+
+    printf("MFLOPS: %f\n", (2*pow(m_ar, 3)/time)*10e-6);
 
     cout << "Result matrix: " << endl;
     for(i=0; i<1; i++)
