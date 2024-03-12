@@ -270,7 +270,7 @@ void OnMultLineParallel1(int m_ar, int m_br)
     auto duration = duration_cast<microseconds>(stop - start);
 
     // Output the time taken
-    cout << "Time (chrono): " << duration.count()*10e6 << " seconds." << endl;
+    cout << "Time (chrono): " << duration.count()/10e6 << " seconds." << endl;
     
     printf("MFLOPS: %f\n", (2*pow(m_ar, 3)/time)*10e-6);
 
@@ -345,7 +345,7 @@ void OnMultLineParallel2(int m_ar, int m_br)
     auto duration = duration_cast<microseconds>(stop - start);
 
     // Output the time taken
-    cout << "Time (chrono): " << duration.count()*1000 << " seconds." << endl;
+    cout << "Time (chrono): " << duration.count()/10e6 << " seconds." << endl;
 
     printf("MFLOPS: %f\n", (2*pow(m_ar, 3)/time)*10e-6);
 
