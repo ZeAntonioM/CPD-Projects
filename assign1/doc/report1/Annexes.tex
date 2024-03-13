@@ -1,0 +1,234 @@
+\section{Annexes}
+
+
+\begin{figure}[ht]
+    \centering
+    \caption{Execution Time: basic vs line (Rust and C++)}
+    \label{graph:BLG1}
+    \begin{tikzpicture}
+        \begin{axis}[
+            xlabel={Dimension},
+            ylabel={Time (in s)},
+            legend pos=outer north east,
+            symbolic x coords={600, 1000, 1400, 1800, 2200, 2600, 3000},
+            xtick=data,
+            x tick label style={rotate=45,anchor=east},
+            grid=major,
+        ]
+        \addplot[color=blue!65!white, mark=*] table[col sep=comma,x=Dimension,y=Time]{data/basicC++.csv};    
+        \addplot[red, mark=square*, thick, dashed] table[col sep=comma,x=Dimension,y=Time]{data/basicRust.csv};
+        \addplot table[col sep=comma,x=Dimension,y=Time]{data/lineC++.csv};
+        \addplot table[col sep=comma,x=Dimension,y=Time]{data/lineRust.csv};
+        \legend{c++ basic,Rust basic, c++ line,Rust line}
+        \end{axis}
+    \end{tikzpicture}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \caption{Cache Misses: line vs basic (C++)}
+    \label{graph:BLG2}
+    \begin{tikzpicture}
+        \begin{axis}[
+            xlabel={Dimension},
+            ylabel={Cache miss (in units)},
+            legend pos=outer north east,
+            symbolic x coords={600, 1000, 1400, 1800, 2200, 2600, 3000},
+            xtick=data,
+            x tick label style={rotate=45,anchor=east},
+            grid=major,
+            yticklabel style={
+                /pgf/number format/sci,
+                /pgf/number format/precision=2
+            },
+        ]
+        \addplot[blue, mark=*] table[col sep=comma,x=Dimension,y=L1]{data/lineL2.csv};
+        \addplot[red, mark=square*, thick, dashed] table[col sep=comma,x=Dimension,y=L1]{data/lineL1.csv};
+        \addplot table[col sep=comma,x=Dimension,y=L1]{data/basicL1.csv};
+        \addplot table[col sep=comma,x=Dimension,y=L1]{data/basicL2.csv};
+        \legend{L2 (line), L1 (line), L1 (basic), L2 (basic)}
+        \end{axis}
+    \end{tikzpicture}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \caption{GFLOPS Comparison: Line vs Basic (c++)}
+    \label{graph:BLG3}
+    \begin{tikzpicture}
+        \begin{axis}[
+            xlabel={Dimension},
+            ylabel={GFLOPS},
+            legend pos=outer north east,
+            symbolic x coords={600, 1000, 1400, 1800, 2200, 2600, 3000},
+            xtick=data,
+            x tick label style={rotate=45,anchor=east},
+            grid=major,
+            yticklabel style={
+                /pgf/number format/sci,
+                /pgf/number format/precision=2
+            },
+        ]
+        \addplot[blue, mark=*] table[col sep=comma,x=Dimension,y=GFLOPS]{data/basicGFLOPSxDimension.csv};
+        \addplot[red, mark=square*, thick, dashed] table[col sep=comma,x=Dimension,y=GFLOPS]{data/lineGFLOPSxDimension.csv};
+        \legend{Basic, Line}
+        \end{axis}
+    \end{tikzpicture}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \caption{Execution Time: block size relationship (C++)}
+    \label{graph:BLG4}
+    \begin{tikzpicture}
+        \begin{axis}[
+            xlabel={Block Size},
+            ylabel={Time (in s)},
+            legend pos=outer north east,
+            symbolic x coords={128, 256, 512},
+            xtick=data,
+            x tick label style={rotate=45,anchor=east},
+            grid=major,
+        ]
+        \addplot[color=blue!65!white, mark=*] table[col sep=comma,x=Dimension,y=Time]{data/block4096.csv};   
+        \addplot table[col sep=comma,x=Dimension,y=Time]{data/block6144.csv};
+        \addplot table[col sep=comma,x=Dimension,y=Time]{data/block8192.csv};
+        \addplot table[col sep=comma,x=Dimension,y=Time]{data/block10240.csv};
+        \legend{4096x4096, 6144x6144, 8192x8192,10240x10240}
+        \end{axis}
+    \end{tikzpicture}
+\end{figure}
+
+
+\begin{figure}[ht]
+    \centering
+    \caption{Speedup: line - Parallel 1 vs Parallel 2 (C++)}
+    \label{graph:BLG5}
+    \begin{tikzpicture}
+        \begin{axis}[
+            xlabel={Dimension},
+            ylabel={Time (in s)},
+            legend pos=outer north east,
+            symbolic x coords={600, 1000, 1400, 1800, 2200, 2600, 3000, 4096, 6144, 8192, 10240},
+            xtick=data,
+            x tick label style={rotate=45,anchor=east},
+            grid=major,
+        ]
+        \addplot[color=blue!65!white, mark=*] table[col sep=comma,x=Dimension,y=Speedup]{data/speedUpxDimensionP1.csv};    
+        \addplot table[col sep=comma,x=Dimension,y=Speedup]{data/speedUpxDimensionP2.csv};
+        \legend{Parallel 1, Parallel 2}
+        \end{axis}
+    \end{tikzpicture}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \caption{L1 Cache Misses: block vs line (C++)}
+    \label{graph:BLG6}
+    \begin{tikzpicture}
+        \begin{axis}[
+            xlabel={Dimension},
+            ylabel={Cache miss (in units)},
+            legend pos=outer north east,
+            symbolic x coords={4096, 6144, 8192, 10240},
+            xtick=data,
+            x tick label style={rotate=45,anchor=east},
+            grid=major,
+            yticklabel style={
+                /pgf/number format/sci,
+                /pgf/number format/precision=2
+            },
+        ]
+        \addplot[blue, mark=*] table[col sep=comma,x=Dimension,y=L1]{data/block128L1.csv};
+        \addplot[red, mark=square*, thick, dashed] table[col sep=comma,x=Dimension,y=L1]{data/block256L1.csv};
+        \addplot table[col sep=comma,x=Dimension,y=L1]{data/block512L1.csv};
+        \addplot table[col sep=comma,x=Dimension,y=L1]{data/lineFullDimL1.csv};
+        \legend{Block 128, Block 256, Block 512, Line}
+        \end{axis}
+    \end{tikzpicture}
+\end{figure}
+
+
+\begin{figure}[ht]
+    \centering
+    \caption{L2 Cache Misses: block vs line (C++)}
+    \label{graph:BLG7}
+    \begin{tikzpicture}
+        \begin{axis}[
+            xlabel={Dimension},
+            ylabel={Cache miss (in units)},
+            legend pos=outer north east,
+            symbolic x coords={4096, 6144, 8192, 10240},
+            xtick=data,
+            x tick label style={rotate=45,anchor=east},
+            grid=major,
+            yticklabel style={
+                /pgf/number format/sci,
+                /pgf/number format/precision=2
+            },
+        ]
+        \addplot[blue, mark=*] table[col sep=comma,x=Dimension,y=L2]{data/block128L2.csv};
+        \addplot[red, mark=square*, thick, dashed] table[col sep=comma,x=Dimension,y=L2]{data/block256L2.csv};
+        \addplot table[col sep=comma,x=Dimension,y=L2]{data/block512L2.csv};
+        \addplot table[col sep=comma,x=Dimension,y=L2]{data/lineFullDimL2.csv};
+        \legend{Block 128, Block 256, Block 512, Line}
+        \end{axis}
+    \end{tikzpicture}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \caption{Execution time: Block vs Line (C++)}
+    \label{graph:BLG8}
+    \begin{tikzpicture}
+        \begin{axis}[
+            xlabel={Dimension},
+            ylabel={GFLOPS},
+            legend pos=outer north east,
+            symbolic x coords={4096, 6144, 8192, 10240},
+            xtick=data,
+            x tick label style={rotate=45,anchor=east},
+            grid=major,
+            yticklabel style={
+                /pgf/number format/sci,
+                /pgf/number format/precision=2
+            },
+        ]
+        \addplot[blue, mark=*] table[col sep=comma,x=Dimension,y=Time]{data/block128Time.csv};
+        \addplot[red, mark=square*, thick, dashed] table[col sep=comma,x=Dimension,y=Time]{data/block256Time.csv};
+        \addplot table[col sep=comma,x=Dimension,y=Time]{data/block512Time.csv};
+        \addplot table[col sep=comma,x=Dimension,y=Time]{data/lineFullDimTime.csv};
+        \legend{Block 128, Block 256, Block 512, Line}
+        \end{axis}
+    \end{tikzpicture}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \caption{GFLOPS Comparison: Line vs Block (c++)}
+    \label{graph:BLG9}
+    \begin{tikzpicture}
+        \begin{axis}[
+            xlabel={Dimension},
+            ylabel={GFLOPS},
+            legend pos=outer north east,
+            symbolic x coords={4096, 6144, 8192, 10240},
+            xtick=data,
+            x tick label style={rotate=45,anchor=east},
+            grid=major,
+            yticklabel style={
+                /pgf/number format/sci,
+                /pgf/number format/precision=2
+            },
+        ]
+        \addplot[blue, mark=*] table[col sep=comma,x=Dimension,y=GFLOPS]{data/GFLOPSBlock128.csv};
+        \addplot[red, mark=square*, thick, dashed] table[col sep=comma,x=Dimension,y=GFLOPS]{data/GFLOPSBlock256.csv};
+        \addplot table[col sep=comma,x=Dimension,y=GFLOPS]{data/GFLOPSBlock512.csv};
+        \addplot table[col sep=comma,x=Dimension,y=GFLOPS]{data/GFLOPSLine.csv};
+        \legend{Block 128, Block 256, Block 512, Line}
+        \end{axis}
+    \end{tikzpicture}
+\end{figure}
+
+
+

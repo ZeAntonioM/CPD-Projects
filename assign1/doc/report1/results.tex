@@ -4,52 +4,38 @@ and recorded the values of the chosen
 metrics. This section analyzes and 
 compares the performance of the
 algorithms based on the average 
-values from these three runs. The 
-following graphs will illustrate the 
-relationship between the input size 
-(x-axis) and the corresponding metric 
-values (y-axis).
+values from these three runs.
 
-\subsection{Execution Time and cache misses}
-\subsubsection{Simple and line matrix multiplication}
+\subsection{Basic multiplication and Line multiplication comparison}
+Both \textbf{C++} and \textbf{Rust} are performance-oriented programming languages 
+that provide developers with direct control over memory 
+management and system interactions, facilitating the 
+creation of highly optimized code. This is apparent 
+when comparing the execution times of basic and line 
+multiplication algorithms, where both C++ and Rust 
+implementations demonstrate \textbf{similar performance}, as 
+depicted in the \textbf{\hyperref[graph:BLG1]{Graph1}.}
 
-\begin{tikzpicture}
-    \begin{axis}[
-        title={Execution Time Comparison},
-        xlabel={Dimension},
-        ylabel={Time (in s)},
-        legend pos=north west,
-        symbolic x coords={600, 1000, 1400, 1800, 2200, 2600, 3000},
-        xtick=data,
-        x tick label style={rotate=45,anchor=east},
-        grid=major,
-    ]
-    \addplot[color=blue!65!white, mark=*] table[col sep=comma,x=Dimension,y=Time]{data/basicC++.csv};    \addplot[red, mark=square*, thick, dashed] table[col sep=comma,x=Dimension,y=Time]{data/basicRust.csv};
-    \addplot table[col sep=comma,x=Dimension,y=Time]{data/lineC++.csv};
-    \addplot table[col sep=comma,x=Dimension,y=Time]{data/lineRust.csv};
-    \legend{c++ basic,Rust basic, c++ line,Rust line}
-    \end{axis}
-\end{tikzpicture}
+Comparing the execution times of both algorithms, 
+it's clear that the line multiplication algorithm 
+\textbf{surpasses the basic multiplication algorithm in 
+terms of speed} - \textbf{\hyperref[graph:BLG1]{Graph1}.} This can also be
+evident in the \textbf{\hyperref[graph:BLG2]{Graph2}}, 
+where the line multiplication algorithm demonstrates 
+\textbf{fewer L1 and L2 cache misses} compared to its basic 
+counterpart, resulting in a reduced execution time. 
+Moreover, the correlation between FLOPS 
+(Floating Point Operations Per Second) and cache misses 
+is significant. The line multiplication algorithm 
+consistently maintains higher FLOPS across varying 
+matrix dimensions, indicative of its \textbf{efficient 
+access to cache}. While there may be a 
+slight decline in FLOPS as matrix dimensions increase, the 
+line multiplication algorithm exhibits 
+greater stability in its performance compared to the 
+basic algorithm as depicted in \textbf{\hyperref[graph:BLG3]{Graph3}}.
 
-\begin{tikzpicture}
-    \begin{axis}[
-        title={Cache Misses Comparison},
-        xlabel={Dimension},
-        ylabel={Cache miss (in units)},
-        legend pos=north west,
-        symbolic x coords={600, 1000, 1400, 1800, 2200, 2600, 3000},
-        xtick=data,
-        x tick label style={rotate=45,anchor=east},
-        grid=major,
-        yticklabel style={
-            /pgf/number format/sci,
-            /pgf/number format/precision=2
-        },
-    ]
-    \addplot[blue, mark=*] table[col sep=comma,x=Dimension,y=L1]{data/lineL2.csv};
-    \addplot[red, mark=square*, thick, dashed] table[col sep=comma,x=Dimension,y=L1]{data/lineL1.csv};
-    \addplot table[col sep=comma,x=Dimension,y=L1]{data/basicL1.csv};
-    \addplot table[col sep=comma,x=Dimension,y=L1]{data/basicL2.csv};
-    \legend{L2 (line), L1 (line), L1 (basic), L2 (basic)}
-    \end{axis}
-\end{tikzpicture}
+\subsection{Block multiplication and Line multiplication comparison}
+
+
+
