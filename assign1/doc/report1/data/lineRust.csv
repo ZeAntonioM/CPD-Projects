@@ -1,8 +1,8 @@
 Prog language,Dimension,Time,Algorithm
-Rust,600x600,0.323,Line
-Rust,1000x1000,0.442,Line
-Rust,1400x1400,0.829,Line
-Rust,1800x1800,2.128,Line
-Rust,2200x2200,4.268,Line
-Rust,2600x2600,7.472,Line
-Rust,3000x3000,11.879,Line
+Rust,600,0.323,Line
+Rust,1000,0.442,Line
+Rust,1400,0.829,Line
+Rust,1800,2.128,Line
+Rust,2200,4.268,Line
+Rust,2600,7.472,Line
+Rust,3000,11.879,Line

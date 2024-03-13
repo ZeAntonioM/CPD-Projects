@@ -1,8 +1,8 @@
 Prog language,Dimension,Time,Algorithm
-c++,600x600,0.099,Line
-c++,1000x1000,0.459,Line
-c++,1400x1400,1.501,Line
-c++,1800x1800,3.367,Line
-c++,2200x2200,6.259,Line
-c++,2600x2600,10.449,Line
-c++,3000x3000,16.062,Line
+c++,600,0.099,Line
+c++,1000,0.459,Line
+c++,1400,1.501,Line
+c++,1800,3.367,Line
+c++,2200,6.259,Line
+c++,2600,10.449,Line
+c++,3000,16.062,Line
