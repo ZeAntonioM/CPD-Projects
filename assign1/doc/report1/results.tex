@@ -17,13 +17,39 @@ values (y-axis).
     \begin{axis}[
         title={Execution Time Comparison},
         xlabel={Dimension},
-        ylabel={Time},
+        ylabel={Time (in s)},
         legend pos=north west,
-        symbolic x coords={600x600, 1000x1000, 1400x1400, 1800x1800, 2200x2200, 2600x2600, 3000x3000},
+        symbolic x coords={600, 1000, 1400, 1800, 2200, 2600, 3000},
         xtick=data,
         x tick label style={rotate=45,anchor=east},
+        grid=major,
     ]
-    \addplot table[col sep=comma,x=Dimension,y=Time]{data/basicC++.csv};
-    \legend{c++,Rust}
+    \addplot[color=blue!65!white, mark=*] table[col sep=comma,x=Dimension,y=Time]{data/basicC++.csv};    \addplot[red, mark=square*, thick, dashed] table[col sep=comma,x=Dimension,y=Time]{data/basicRust.csv};
+    \addplot table[col sep=comma,x=Dimension,y=Time]{data/lineC++.csv};
+    \addplot table[col sep=comma,x=Dimension,y=Time]{data/lineRust.csv};
+    \legend{c++ basic,Rust basic, c++ line,Rust line}
+    \end{axis}
+\end{tikzpicture}
+
+\begin{tikzpicture}
+    \begin{axis}[
+        title={Cache Misses Comparison},
+        xlabel={Dimension},
+        ylabel={Cache miss (in units)},
+        legend pos=north west,
+        symbolic x coords={600, 1000, 1400, 1800, 2200, 2600, 3000},
+        xtick=data,
+        x tick label style={rotate=45,anchor=east},
+        grid=major,
+        yticklabel style={
+            /pgf/number format/sci,
+            /pgf/number format/precision=2
+        },
+    ]
+    \addplot[blue, mark=*] table[col sep=comma,x=Dimension,y=L1]{data/lineL2.csv};
+    \addplot[red, mark=square*, thick, dashed] table[col sep=comma,x=Dimension,y=L1]{data/lineL1.csv};
+    \addplot table[col sep=comma,x=Dimension,y=L1]{data/basicL1.csv};
+    \addplot table[col sep=comma,x=Dimension,y=L1]{data/basicL2.csv};
+    \legend{L2 (line), L1 (line), L1 (basic), L2 (basic)}
     \end{axis}
 \end{tikzpicture}

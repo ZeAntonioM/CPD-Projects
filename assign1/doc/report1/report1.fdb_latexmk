@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1710246054 "/home/tomas/Desktop/Uni/2o-semestre/cpd/g11/assign1/doc/report1/report1.tex" "report1.pdf" "report1" 1710246055 2
+["pdflatex"] 1710331257 "/home/tomas/Desktop/Uni/2o-semestre/cpd/g11/assign1/doc/report1/report1.tex" "report1.pdf" "report1" 1710331259 0
   "/home/tomas/Desktop/Uni/2o-semestre/cpd/g11/assign1/doc/report1/report1.tex" 1710246053 1202 b4de8d596456b7627b15a42245728bdc ""
   "/usr/share/texmf-dist/fonts/enc/dvips/base/8r.enc" 1704400182 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1704400182 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -206,15 +206,21 @@
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1709048617 6768054 13ffb04ec3bef92a391127a0f4b2566c ""
   "algorithms.tex" 1710244485 3165 356184f89ca1bb95760920c2a32ad8c8 ""
   "conclusion.tex" 1710159020 20 b50204e17c0a475d3d65191e029fdf1d ""
-  "data/times1-c++.csv" 1710245971 189 6fd1c2aced801de0ed5770d50b6103e1 ""
-  "data/times1-rust.csv" 1710245651 184 0b1011d9a80bb3788a4ac1f50344ae14 ""
+  "data/basicC++.csv" 1710328708 209 970304020addd19dd64c0d959ca74932 ""
+  "data/basicL1.csv" 1710328708 230 a30462d4553837965174a1b819f6477f ""
+  "data/basicL2.csv" 1710328708 230 eaa4f1a61b90c443f5b709be75ae7d8a ""
+  "data/basicRust.csv" 1710328708 209 a7eb5c3e8117ae479a47a98ddb23e616 ""
+  "data/lineC++.csv" 1710328708 188 64dd15476b2d556e29a286ef6dcf97e5 ""
+  "data/lineL1.csv" 1710328708 219 dff90c613c65c7f699d526a4a895ba5b ""
+  "data/lineL2.csv" 1710328708 219 b26acaf8a8f9141056db73c266a8543f ""
+  "data/lineRust.csv" 1710328708 194 6ac8ffdf9a9576f4278c6a0b12cefc01 ""
   "figures//uporto-feup.pdf" 1710159020 12740 0bd34fcc2c83189d41299a9453e17a77 ""
   "metrics.tex" 1710244397 1750 7edec284391aa390feef5d6aa5369e24 ""
   "problemDescription.tex" 1710244536 323 88125cc2473d8edc9b8c8267b0322ce2 ""
-  "report1.aux" 1710246055 5962 f44246bb6d069ca24c2e21c0b6315879 "pdflatex"
+  "report1.aux" 1710331259 5962 94041bbf94b419a346cc182c367e55dc "pdflatex"
   "report1.tex" 1710246053 1202 b4de8d596456b7627b15a42245728bdc ""
-  "report1.toc" 1710246055 1028 fbb1b97c171afc65bcd94a3f0f785eea "pdflatex"
-  "results.tex" 1710246051 1022 7b9f57a73da5c789712c6d660f00f512 ""
+  "report1.toc" 1710331259 1028 5daac824e22cd6abad0a57dcb64542f8 "pdflatex"
+  "results.tex" 1710331255 2130 00e7fa13168476ac437e0dcedbb5e900 ""
   (generated)
   "report1.aux"
   "report1.log"
