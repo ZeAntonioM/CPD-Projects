@@ -8,6 +8,7 @@
 \contentsline {subsection}{\numberline {3.2}Hardware used}{4}{subsection.3.2}%
 \contentsline {section}{\numberline {4}Results and Analysis}{4}{section.4}%
 \contentsline {subsection}{\numberline {4.1}Basic multiplication and Line multiplication comparison}{4}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Block multiplication and Line multiplication comparison}{4}{subsection.4.2}%
-\contentsline {section}{\numberline {5}Conclusion}{5}{section.5}%
-\contentsline {section}{\numberline {6}Annexes}{5}{section.6}%
+\contentsline {subsection}{\numberline {4.2}Block multiplication and Line multiplication comparison}{5}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Line multiplication algorithm - Parallel versions}{6}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Conclusion}{7}{section.5}%
+\contentsline {section}{\numberline {6}Annexes}{8}{section.6}%

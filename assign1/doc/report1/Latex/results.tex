@@ -1,0 +1,150 @@
+\section{Results and Analysis}
+We ran the algorithms three times
+and recorded the values of the chosen
+metrics. This section analyzes and
+compares the performance of the
+algorithms based on the average
+values from these three runs.
+
+\subsection{Basic multiplication and Line multiplication comparison}
+Both \textbf{C++} and \textbf{Rust} are performance-oriented programming languages
+that provide developers with direct control over memory
+management and system interactions, facilitating the
+creation of highly optimized code. This is apparent
+when comparing the execution times of basic and line
+multiplication algorithms, where both C++ and Rust
+implementations demonstrate \textbf{similar performance}, as
+depicted in the \textit{(\hyperref[graph:BLG1]{Graph1}).}
+
+Comparing the execution times of both algorithms,
+it's clear that the line multiplication algorithm
+\textbf{surpasses} the basic multiplication algorithm in
+terms of speed - \textit{(\hyperref[graph:BLG1]{Graph1}).} This can also be
+evident in the \textit{(\hyperref[graph:BLG2]{Graph2})},
+where the line multiplication algorithm demonstrates
+\textbf{fewer L1 and L2 cache misses} compared to its basic
+counterpart, resulting in a reduced execution time.
+The line multiplication algorithm's cache efficiency excels from its
+\textbf{sequential and contiguous} memory access. This pattern optimally
+utilizes cache by accessing adjacent data, aligning well with
+cache loading mechanisms. In contrast, the basic algorithm's
+non-sequential access leads to \textbf{increased cache misses} and
+consequently lower FLOPS, impeding performance.
+This can be observed in the \textit{(\hyperref[graph:BLG3]{Graph3})}
+as the line multiplication algorithm
+consistently maintains higher FLOPS across varying
+matrix dimensions, indicative of its \textbf{efficient
+    access to cache}. While there may be a
+slight decline in FLOPS as matrix dimensions increase, the
+line multiplication algorithm exhibits
+greater stability in its performance compared to the
+basic algorithm as predicted.
+
+\subsection{Block multiplication and Line multiplication comparison}
+During the testing of the block multiplication algorithm, it
+became evident that this approach \textbf{outpaces} both the line multiplication
+algorithm and the basic multiplication algorithm, as anticipated.
+This superiority is clearly seen in the \textit{(\hyperref[graph:BLG8]{Graph5})}, where the
+block multiplication method showcases a substantial \textbf{decrease in
+    execution time} compared to the line multiplication algorithm.
+Furthermore, as shown by the \textit{(\hyperref[graph:BLG4]{Graph4})}, while there
+may be slight fluctuations in execution time, it's notable that
+different block sizes exhibit similar performance, although using blocks of
+size 512 appears to give optimal results.
+
+As previously discussed, faster execution times often correlate with fewer cache
+misses and higher FLOPS, implying that the
+block multiplication algorithm would \textbf{likely outperform} the line multiplication
+algorithm in these metrics. This expectation is partially supported by the data in
+the \textit{(\hyperref[graph:BLG6]{Graph6})}, where the block multiplication algorithm
+exhibits \textbf{lower L1 cache misses} compared to the line multiplication algorithm.
+However, upon examining the \textit{(\hyperref[graph:BLG7]{Graph7})},
+it becomes apparent that although the difference is not that much,
+the line multiplication algorithm demonstrates \textbf{better performance in terms of L2
+    cache misses}. This observation contrasts with the initial hypothesis. To
+understand this apparent contradiction, it's crucial to recognize the \textbf{significant
+    speed disparity} between \textbf{L1 and L2 caches}. The block multiplication algorithm's
+strategy of breaking matrices into smaller blocks enhances spatial locality,
+reducing L1 cache misses by facilitating \textbf{more efficient data access and reuse}.
+Consequently, data required for calculations is \textbf{often readily available in the
+    faster L1 cache}, minimizing the time required to fetch data from slower memory.
+However, due to the algorithm's utilization of larger amounts of data overall,
+it may exceed the capacity of the L2 cache, resulting in more misses at this
+level. Despite these increased L2 cache misses, the block multiplication
+algorithm remains faster overall due to its efficient use of the L1 cache.
+
+When comparing the FLOPS of the block multiplication algorithm to
+the line multiplication algorithm, we anticipated \textbf{superior performance
+    from the block algorithm}. Additionally, we expected that varying block
+sizes would demonstrate consistency in FLOPS across different matrices sizes,
+with a block size of 512 being the most effective, followed by 256 and 128.
+These expectations were \textbf{largely
+    verified} by the data presented in the \textit{(\hyperref[graph:BLG9]{Graph8})},
+except for a \textbf{notable anomaly}:
+when using block sizes of 256 and 512 on a matrix with dimensions of 8192,
+there was a \textbf{significant decline in FLOPS}, contrasting with the consistent
+performance observed across other matrix dimensions. Despite in-depth analysis,
+we couldn't identify a noticeable pattern in the data to explain this phenomenon,
+particularly given that even on matrices with higher dimensions, the FLOPS remained
+consistent.
+
+\newpage
+
+\subsection{Line multiplication algorithm - Parallel versions}
+This section explores the performance gains achieved through two distinct
+approaches for parallelizing a nested loop structure using OpenMP's \textbf{\#pragma omp parallel
+    for} instruction.
+
+\hspace*{1cm}
+
+\begin{lstlisting}[language=C++, caption=Parallel 1]
+    #pragma omp parallel for
+    for (int i=0; i<n; i++) {
+        for (int k=0; k<n; k++) {
+            for (int j=0; j<n; j++) {
+                // computations here
+            }
+        }
+    }
+\end{lstlisting}
+
+\begin{itemize}
+    \item Distributes iterations of the \textbf{outer loop (i)} among multiple threads for concurrent execution
+    \item \textbf{The inner loops (k and j)} are executed sequentially within each thread
+\end{itemize}
+
+\hspace*{1cm}
+
+\begin{lstlisting}[language=C++, caption=Parallel 2]
+    #pragma omp parallel
+    for (int i=0; i<n; i++) {
+        for (int k=0; k<n; k++) {
+            #pragma omp for
+            for (int j=0; j<n; j++) {
+                // computations here
+            }
+        }
+    }
+\end{lstlisting}
+
+\begin{itemize}
+    \item Distributes iterations of the \textbf{innermost loop (j)} among multiple threads for concurrent execution
+    \item \textbf{The outer loops (i and k)} are executed sequentially within each thread
+\end{itemize}
+
+\hspace*{1cm}
+
+While both parallelization strategies managed to surpass the performance of the
+sequential version, it was evident that the first strategy outperformed the second
+by approximately 4.75 times, and exceeded the sequential version by a factor of 5.6,
+as shown in the \textit{(\hyperref[graph:BLG5]{Graph9})}. Despite this significant gap, the second strategy still 
+demonstrated a slight improvement over the sequential version, achieving a speedup 
+of 1.18.
+
+As highlighted in the \textit{\hyperref[sec:metrics]{metrics section}}, the efficiency of parallelization strategies 
+can be quantified using the \textit{\hyperref[eq:efficiency]{efficiency equation}}. 
+As expected, the strategy that achieved the highest speedup also exhibited the highest 
+efficiency - \textit{(\hyperref[graph:BLG11]{Graph11})}. This efficiency metric serves as a 
+validation of the achieved FLOPS by the parallelized versions, with the most 
+efficient strategy naturally capable of delivering higher FLOPS, as illustrated 
+in the \textit{(\hyperref[graph:BLG10]{Graph10})}.

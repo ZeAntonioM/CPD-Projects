@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.3.13)  14 MAR 2024 12:20
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.2.29)  15 MAR 2024 18:37
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/home/tomas/Uni/3ano/2semestre/CPD/g11/assign1/doc/report1/report1.tex
-(/home/tomas/Uni/3ano/2semestre/CPD/g11/assign1/doc/report1/report1.tex
+**/home/tomas/Uni/3ano/2semestre/cpd/g11/assign1/doc/report1/Latex/report1.tex
+(/home/tomas/Uni/3ano/2semestre/cpd/g11/assign1/doc/report1/Latex/report1.tex
 LaTeX2e <2021-11-15> patch level 1
 L3 programming layer <2022-01-21> (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2021/10/04 v1.4n Standard LaTeX document class
@@ -489,61 +489,83 @@ Package caption Info: Standard document class detected.
 \c@caption@flags=\count310
 \c@continuedfloat=\count311
 Package caption Info: hyperref package is loaded.
-)
-LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 19.
+) (/usr/share/texlive/texmf-dist/tex/latex/listings/listings.sty
+\lst@mode=\count312
+\lst@gtempboxa=\box64
+\lst@token=\toks38
+\lst@length=\count313
+\lst@currlwidth=\dimen281
+\lst@column=\count314
+\lst@pos=\count315
+\lst@lostspace=\dimen282
+\lst@width=\dimen283
+\lst@newlines=\count316
+\lst@lineno=\count317
+\lst@maxwidth=\dimen284
+ (/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty
+File: lstmisc.sty 2020/03/24 1.8d (Carsten Heinz)
+\c@lstnumber=\count318
+\lst@skipnumbers=\count319
+\lst@framebox=\box65
+) (/usr/share/texlive/texmf-dist/tex/latex/listings/listings.cfg
+File: listings.cfg 2020/03/24 1.8d listings configuration
+))
+Package: listings 2020/03/24 1.8d (Carsten Heinz)
+LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 20.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 ) (/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2022-01-12 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count312
-\l__pdf_internal_box=\box64
+\l__color_backend_stack_int=\count320
+\l__pdf_internal_box=\box66
 ) (./report1.aux)
 \openout1 = `report1.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-Package hyperref Info: Link coloring OFF on input line 19.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+Package hyperref Info: Link coloring OFF on input line 20.
  (/usr/share/texlive/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2021-04-02 v2.47 Cross-referencing by name of section
- (/usr/share/texlive/texmf-dist/tex/latex/refcount/refcount.sty
+
+(/usr/share/texlive/texmf-dist/tex/latex/refcount/refcount.sty
 Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
 ) (/usr/share/texlive/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
-\c@section@level=\count313
+\c@section@level=\count321
 )
-LaTeX Info: Redefining \ref on input line 19.
-LaTeX Info: Redefining \pageref on input line 19.
-LaTeX Info: Redefining \nameref on input line 19.
+LaTeX Info: Redefining \ref on input line 20.
+LaTeX Info: Redefining \pageref on input line 20.
+LaTeX Info: Redefining \nameref on input line 20.
  (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count314
-\scratchdimen=\dimen281
-\scratchbox=\box65
-\nofMPsegments=\count315
-\nofMParguments=\count316
-\everyMPshowfont=\toks38
-\MPscratchCnt=\count317
-\MPscratchDim=\dimen282
-\MPnumerator=\count318
-\makeMPintoPDFobject=\count319
-\everyMPtoPDFconversion=\toks39
+\scratchcounter=\count322
+\scratchdimen=\dimen285
+\scratchbox=\box67
+\nofMPsegments=\count323
+\nofMParguments=\count324
+\everyMPshowfont=\toks39
+\MPscratchCnt=\count325
+\MPscratchDim=\dimen286
+\MPnumerator=\count326
+\makeMPintoPDFobject=\count327
+\everyMPtoPDFconversion=\toks40
 ) (/usr/share/texlive/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
@@ -553,11 +575,13 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 Package pgfplots notification 'compat/show suggested version=true': you might benefit from \pgfplotsset{compat=1.18} (current compat level: 1.9).
 
 Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: listings package is loaded.
 Package caption Info: End \AtBeginDocument code.
+\c@lstlisting=\count328
 <figures//uporto-feup.pdf, id=7, 338.26375pt x 126.4725pt>
 File: figures//uporto-feup.pdf Graphic file (type pdf)
 <use figures//uporto-feup.pdf>
-Package pdftex.def Info: figures//uporto-feup.pdf  used on input line 38.
+Package pdftex.def Info: figures//uporto-feup.pdf  used on input line 39.
 (pdftex.def)             Requested size: 207.0021pt x 77.39705pt.
 [1
 
@@ -591,17 +615,37 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
 pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.45 \newpage
+l.46 \newpage
               [1] (./problemDescription.tex) (./algorithms.tex
 LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 14.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )) (./metrics.tex [2]
-Overfull \hbox (4.74681pt too wide) in paragraph at lines 27--32
+Overfull \hbox (4.74681pt too wide) in paragraph at lines 28--33
 []\OT1/ptm/b/n/10 GFlops \OT1/ptm/m/n/10 - This met-ric, de-rived from "\OT1/ptm/b/n/10 G\OT1/ptm/m/n/10 iga \OT1/ptm/b/n/10 Fl\OT1/ptm/m/n/10 oating-point \OT1/ptm/b/n/10 O\OT1/ptm/m/n/10 perations \OT1/ptm/b/n/10 p\OT1/ptm/m/n/10 er \OT1/ptm/b/n/10 S\OT1/ptm/m/n/10 econd",
  []
 
-[3]) (./results.tex) (./conclusion.tex [4]) (./Annexes.tex
+[3]) (./results.tex [4] [5] (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2020/03/24 1.8d listings language file
+) (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2020/03/24 1.8d listings language file
+) (/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty
+File: lstmisc.sty 2020/03/24 1.8d (Carsten Heinz)
+)
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 100.
+LaTeX Font Info:    Trying to load font information for OML+ptm on input line 102.
+ (/usr/share/texlive/texmf-dist/tex/latex/psnfss/omlptm.fd
+File: omlptm.fd 
+)
+LaTeX Font Info:    Font shape `OML/ptm/m/n' in size <10> not available
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 102.
+LaTeX Font Info:    Trying to load font information for OMS+ptm on input line 102.
+ (/usr/share/texlive/texmf-dist/tex/latex/psnfss/omsptm.fd
+File: omsptm.fd 
+)
+LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 102.
+) (./conclusion.tex [6]) [7] (./annexes.tex
 PGFPlots: reading {data/basicC++.csv}
 PGFPlots: reading {data/basicRust.csv}
 PGFPlots: reading {data/lineC++.csv}
@@ -669,20 +713,25 @@ Overfull \hbox (4.83493pt too wide) in paragraph at lines 196--197
 
 PGFPlots: reading {data/speedUpxDimensionP1.csv}
 PGFPlots: reading {data/speedUpxDimensionP2.csv}
-) [5] [6] [7] [8] [9] [10] (./report1.aux) ) 
+PGFPlots: reading {data/GFLOPSP1.csv}
+PGFPlots: reading {data/GFLOPSP2.csv}
+PGFPlots: reading {data/lineFullGFLOPS.csv}
+PGFPlots: reading {data/EfficiencyP1.csv}
+PGFPlots: reading {data/EfficiencyP2.csv}
+) [8] [9] [10] [11] [12] [13] [14] (./report1.aux) ) 
 Here is how much of TeX's memory you used:
- 31669 strings out of 478287
- 752087 string characters out of 5849289
- 1233639 words of memory out of 5000000
- 49245 multiletter control sequences out of 15000+600000
+ 33548 strings out of 478287
+ 777554 string characters out of 5849289
+ 1352627 words of memory out of 5000000
+ 51062 multiletter control sequences out of 15000+600000
  502354 words of font info for 83 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,19n,103p,783b,2435s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 99i,19n,103p,789b,2435s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/symbol/usyr.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on report1.pdf (11 pages, 126586 bytes).
+Output written on report1.pdf (15 pages, 141106 bytes).
 PDF statistics:
- 197 PDF objects out of 1000 (max. 8388607)
- 166 compressed objects within 2 object streams
- 38 named destinations out of 1000 (max. 500000)
- 122 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 253 PDF objects out of 1000 (max. 8388607)
+ 217 compressed objects within 3 object streams
+ 64 named destinations out of 1000 (max. 500000)
+ 130 words of extra memory for PDF output out of 10000 (max. 10000000)
 

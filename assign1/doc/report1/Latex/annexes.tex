@@ -217,5 +217,48 @@
     \end{tikzpicture}
 \end{figure}
 
+\begin{figure}[ht]
+    \centering
+    \caption{GFLOPS Comparison: line - Parallelelism vs sequential (C++)}
+    \label{graph:BLG10}
+    \begin{tikzpicture}
+        \begin{axis}[
+            xlabel={Dimension},
+            ylabel={},
+            legend pos=outer north east,
+            symbolic x coords={600, 1000, 1400, 1800, 2200, 2600, 3000, 4096, 6144, 8192, 10240},
+            xtick=data,
+            x tick label style={rotate=45,anchor=east},
+            grid=major,
+        ]
+        \addplot table[col sep=comma,x=Dimension,y=GFLOPS]{data/GFLOPSP1.csv};
+        \addplot table[col sep=comma,x=Dimension,y=GFLOPS]{data/GFLOPSP2.csv};
+        \addplot[color=blue!65!white, mark=*] table[col sep=comma,x=Dimension,y=GFLOPS]{data/lineFullGFLOPS.csv};    
+        \legend{Parallel 1, Parallel 2, Sequential}
+        \end{axis}
+    \end{tikzpicture}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \caption{Efficiency: line - Parallel 1 vs Parallel 2 (C++)}
+    \label{graph:BLG11}
+    \begin{tikzpicture}
+        \begin{axis}[
+            xlabel={Dimension},
+            ylabel={},
+            legend pos=outer north east,
+            symbolic x coords={600, 1000, 1400, 1800, 2200, 2600, 3000, 4096, 6144, 8192, 10240},
+            xtick=data,
+            x tick label style={rotate=45,anchor=east},
+            grid=major,
+        ]
+        \addplot[color=blue!65!white, mark=*] table[col sep=comma,x=Dimension,y=Efficiency]{data/EfficiencyP1.csv};    
+        \addplot table[col sep=comma,x=Dimension,y=Efficiency]{data/EfficiencyP2.csv};
+        \legend{Parallel 1, Parallel 2}
+        \end{axis}
+    \end{tikzpicture}
+\end{figure}
+
 
 
