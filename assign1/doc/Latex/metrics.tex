@@ -2,60 +2,58 @@
 \label{sec:metrics}
 
 \subsection{Metrics}
-To assess the performance of the C++ implementations, we 
-utilized the PAPI (Performance API), providing us with comprehensive 
-hardware performance monitoring. Our evaluation comprised the 
+To assess the performance of the C++ implementations, we
+utilized the PAPI (Performance API), providing us with comprehensive
+hardware performance monitoring. Our evaluation comprised the
 following key metrics:
 
 \begin{itemize}
-\item \textbf{Execution Time} - This metric quantifies the 
-duration taken by the program to 
-complete its execution. It serves as a fundamental 
-benchmark for computing overall performance 
-and facilitating comparative analysis.
+    \item \textbf{Execution Time} - This metric measures the time it takes for the program to execute matrix multiplication algorithm. 
+          It serves as a fundamental
+          benchmark for computing overall performance
+          and facilitating comparative analysis.
 
-\item \textbf{L1 and L2 Cache Misses} - These metrics 
-quantify the number of cache misses occurring in the 
-L1 and L2 caches, respectively. A cache miss arises 
-when the requested data is not found in the cache and 
-require retrieval from main memory. This metric 
-provides valuable insights into the memory access patterns
-of the program, as frequent cache misses can lead to 
-increased execution times, which means that 
-minimizing cache misses is crucial for optimizing 
-program performance!
+    \item \textbf{L1 and L2 Cache Misses} - These metrics quantify the number 
+        of cache misses occurring in the L1 and L2 caches, respectively. 
+        A cache miss arises when the requested data is not found in the cache 
+        and must be retrieved from the next level of memory. This metric
+          provides valuable insights into the memory access patterns
+          of the program, as frequent cache misses can lead to
+          increased execution times, which means that
+          minimizing cache misses is crucial for optimizing
+          program performance!
 
-\item \textbf{GFlops} - This metric, derived from "\textbf{G}iga 
-\textbf{Fl}oating-point \textbf{O}perations \textbf{p}er \textbf{S}econd", provides a measure of a 
-computer's performance in executing floating-point arithmetic 
-operations. It quantifies the rate at which a system can 
-perform such operations and is calculated using the following formula:
-    \begin{equation}
-        GFlops = \frac{Number\ of\ Floating\ Point\ Operations}{Execution\ Time\ in\ Seconds} \times 10^{-9}
-    \end{equation}
+    \item \textbf{GFlops} - This metric, derived from "\textbf{G}iga
+          \textbf{Fl}oating-point \textbf{O}perations \textbf{p}er \textbf{S}econd", provides a measure of a
+          computer's performance in executing floating-point arithmetic
+          operations. It quantifies the rate at which a system can
+          perform such operations and is calculated using the following formula:
+          \begin{equation}
+              GFlops = \frac{Number\ of\ Floating\ Point\ Operations}{Execution\ Time\ in\ Seconds} \times 10^{-9}
+          \end{equation}
 
-\item \textbf{Speedup} - This metric quantifies the 
-amount of improvement gained by using a particula 
-parallelization technique compared to a baseline
-implementation. It is calculated as the ratio of
-the execution time of the baseline implementation
-to the execution time of the optimized or parallelized
-version. The formula for speedup is as follows:
-    \begin{equation}
-        Speedup = \frac{Execution\ Time\ of\ Baseline\ Implementation}{Execution\ Time\ of\ Optimized\ Implementation}
-    \end{equation}
+    \item \textbf{Speedup} - This metric quantifies the
+          amount of improvement gained by using a particular
+          parallelization technique compared to a baseline
+          implementation. It is calculated as the ratio of
+          the execution time of the baseline implementation
+          to the execution time of the optimized or parallelized
+          version. The formula for speedup is as follows:
+          \begin{equation}
+              Speedup = \frac{Execution\ Time\ of\ Baseline\ Implementation}{Execution\ Time\ of\ Optimized\ Implementation}
+          \end{equation}
 
 
-\item \textbf{Efficiency} - Efficiency measures 
-how effectively a parallelization technique 
-utilizes the available computational resources, 
-such as CPU cores. It is calculated as the ratio
-of the speedup to the number of cores used. The
-formula for efficiency is as follows:
-    \begin{equation}
-        Efficiency = \frac{Speedup}{Number\ of\ Cores}
-        \label{eq:efficiency}
-    \end{equation}
+    \item \textbf{Efficiency} - Efficiency measures
+          how effectively a parallelization technique
+          utilizes the available computational resources,
+          such as CPU cores. It is calculated as the ratio
+          of the speedup to the number of cores used. The
+          formula for efficiency is as follows:
+          \begin{equation}
+              Efficiency = \frac{Speedup}{Number\ of\ Cores}
+              \label{eq:efficiency}
+          \end{equation}
 
 \end{itemize}
 

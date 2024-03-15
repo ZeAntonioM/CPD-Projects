@@ -1,11 +1,11 @@
 \section{Algorithms}
-In order to understand the influence of different algorithms on 
-processor performance during matrix multiplication, we implemented 
+In order to understand the influence of different algorithms on
+processor performance during matrix multiplication, we implemented
 three algorithms that vary primarily in their memory access patterns.
 To analyze the impact of the programming languages on the performance
-we implemented the algorithms in \textbf{C++} and \textbf{Rust}. This choice allows us to compare 
-the efficiency of a compiled, system-level language \textbf{- C++ -} with a compiled 
-language known for its memory safety and performance focus \textbf{- Rust}. Both 
+we implemented the algorithms in \textbf{C++} and \textbf{Rust}. This choice allows us to compare
+the efficiency of a compiled, system-level language \textbf{- C++ -} with a compiled
+language known for its memory safety and performance focus \textbf{- Rust}. Both
 languages offer high levels of control over memory management, making
 them suitable for investigating how memory access patterns affect performance.
 
@@ -18,12 +18,12 @@ them suitable for investigating how memory access patterns affect performance.
 
 \subsection{Basic matrix multiplication algorithm}
 
-This algorithm implements a basic matrix multiplication approach, 
-where each element in the resulting matrix is computed by 
-multiplying one row of the first matrix by one 
-column of the second. As a result, the algorithm demonstrates a 
-computational time complexity of $O(n^3)$ and a space complexity 
-of $O(n^2)$, owing to its composition of three nested loops. Here, 
+This algorithm implements a basic matrix multiplication approach,
+where each element in the resulting matrix is computed by
+multiplying one row of the first matrix by one
+column of the second. As a result, the algorithm demonstrates a
+computational time complexity of $O(n^3)$ and a space complexity
+of $O(n^2)$, owing to its composition of three nested loops. Here,
 $n$ represents the size of the input matrices.
 
 The resulting matrix can be calculated using the following equation:
@@ -37,33 +37,26 @@ where $C$ is the resulting matrix, $A$ and $B$ are the input matrices, and $n$ i
 
 \subsection{Line matrix multiplication algorithm}
 
-Instead of directly multiplying a row of the 
+Instead of directly multiplying a row of the
 first matrix with a column of the second, this algorithm
-computes the product of a row of the first 
-matrix with each row of the second. This 
-adjustment results in accessing matrix 
-elements in a cache-friendly row-major 
-order, reducing cache misses and improving 
-execution time, particularly for large matrices. 
-Despite maintaining the same time and space complexity as the algorithm before
-, this algorithm's 
-efficient cache usage often makes it 
-faster than the basic matrix multiplication 
-algorithm in practical scenarios.
+computes the product of a row of the first
+matrix with each row of the second. Despite maintaining the same time and space complexity as the algorithm before, this algorithm's
+efficient cache usage often reduce cache misses and improves
+execution time, particularly for large matrices.
 
 
 \subsection{Block matrix multiplication algorithm}
 
-The Block Matrix Multiplication algorithm is designed 
-to further optimize memory access patterns by dividing 
-the matrices into smaller blocks. This strategy enhances 
-cache utilization and reduces cache misses compared to the 
-Line Matrix Multiplication approach. The algorithm operates by 
-multiplying submatrices 
-within these blocks, thereby minimizing the distance between 
-accessed elements and exploiting spatial locality. Although 
-sharing identical space and time complexities with the preceding 
-algorithms, block matrix multiplication excels in performance, 
-particularly with large matrices. This superiority derives from its 
-capability to partition matrices into smaller blocks, effectively 
+The Block Matrix Multiplication algorithm is designed
+to further optimize memory access patterns by dividing
+the matrices into smaller blocks. This strategy enhances
+cache utilization and reduces cache misses compared to the
+Line Matrix Multiplication approach. The algorithm operates by
+multiplying submatrices
+within these blocks, thereby minimizing the number of accesses to slower memory
+and exploiting spatial locality. Although
+sharing identical space and time complexities with the preceding
+algorithms, block matrix multiplication excels in performance,
+particularly with large matrices. This superiority derives from its
+capability to partition matrices into smaller blocks, effectively
 decreasing the incidence of cache misses.

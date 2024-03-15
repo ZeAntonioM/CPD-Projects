@@ -14,13 +14,13 @@ creation of highly optimized code. This is apparent
 when comparing the execution times of basic and line
 multiplication algorithms, where both C++ and Rust
 implementations demonstrate \textbf{similar performance}, as
-depicted in the \textit{(\hyperref[graph:BLG1]{Graph1}).}
+depicted in the \textit{\hyperref[graph:BLG1]{Graph1}.}
 
 Comparing the execution times of both algorithms,
 it's clear that the line multiplication algorithm
 \textbf{surpasses} the basic multiplication algorithm in
-terms of speed - \textit{(\hyperref[graph:BLG1]{Graph1}).} This can also be
-evident in the \textit{(\hyperref[graph:BLG2]{Graph2})},
+terms of speed - \textit{\hyperref[graph:BLG1]{Graph1}.} This can also be
+evident in the \textit{\hyperref[graph:BLG2]{Graph2}},
 where the line multiplication algorithm demonstrates
 \textbf{fewer L1 and L2 cache misses} compared to its basic
 counterpart, resulting in a reduced execution time.
@@ -30,7 +30,7 @@ utilizes cache by accessing adjacent data, aligning well with
 cache loading mechanisms. In contrast, the basic algorithm's
 non-sequential access leads to \textbf{increased cache misses} and
 consequently lower FLOPS, impeding performance.
-This can be observed in the \textit{(\hyperref[graph:BLG3]{Graph3})}
+This can be observed in the \textit{\hyperref[graph:BLG3]{Graph3}}
 as the line multiplication algorithm
 consistently maintains higher FLOPS across varying
 matrix dimensions, indicative of its \textbf{efficient
@@ -44,10 +44,10 @@ basic algorithm as predicted.
 During the testing of the block multiplication algorithm, it
 became evident that this approach \textbf{outpaces} both the line multiplication
 algorithm and the basic multiplication algorithm, as anticipated.
-This superiority is clearly seen in the \textit{(\hyperref[graph:BLG8]{Graph5})}, where the
+This superiority is clearly seen in the \textit{\hyperref[graph:BLG8]{Graph5}}, where the
 block multiplication method showcases a substantial \textbf{decrease in
     execution time} compared to the line multiplication algorithm.
-Furthermore, as shown by the \textit{(\hyperref[graph:BLG4]{Graph4})}, while there
+Furthermore, as shown by the \textit{\hyperref[graph:BLG4]{Graph4}}, while there
 may be slight fluctuations in execution time, it's notable that
 different block sizes exhibit similar performance, although using blocks of
 size 512 appears to give optimal results.
@@ -56,9 +56,9 @@ As previously discussed, faster execution times often correlate with fewer cache
 misses and higher FLOPS, implying that the
 block multiplication algorithm would \textbf{likely outperform} the line multiplication
 algorithm in these metrics. This expectation is partially supported by the data in
-the \textit{(\hyperref[graph:BLG6]{Graph6})}, where the block multiplication algorithm
+the \textit{\hyperref[graph:BLG6]{Graph6}}, where the block multiplication algorithm
 exhibits \textbf{lower L1 cache misses} compared to the line multiplication algorithm.
-However, upon examining the \textit{(\hyperref[graph:BLG7]{Graph7})},
+However, upon examining the \textit{\hyperref[graph:BLG7]{Graph7}},
 it becomes apparent that although the difference is not that much,
 the line multiplication algorithm demonstrates \textbf{better performance in terms of L2
     cache misses}. This observation contrasts with the initial hypothesis. To
@@ -79,7 +79,7 @@ the line multiplication algorithm, we anticipated \textbf{superior performance
 sizes would demonstrate consistency in FLOPS across different matrices sizes,
 with a block size of 512 being the most effective, followed by 256 and 128.
 These expectations were \textbf{largely
-    verified} by the data presented in the \textit{(\hyperref[graph:BLG9]{Graph8})},
+    verified} by the data presented in the \textit{\hyperref[graph:BLG9]{Graph8}},
 except for a \textbf{notable anomaly}:
 when using block sizes of 256 and 512 on a matrix with dimensions of 8192,
 there was a \textbf{significant decline in FLOPS}, contrasting with the consistent
@@ -137,14 +137,14 @@ approaches for parallelizing a nested loop structure using OpenMP's \textbf{\#pr
 While both parallelization strategies managed to surpass the performance of the
 sequential version, it was evident that the first strategy outperformed the second
 by approximately 4.75 times, and exceeded the sequential version by a factor of 5.6,
-as shown in the \textit{(\hyperref[graph:BLG5]{Graph9})}. Despite this significant gap, the second strategy still 
+as shown in the \textit{\hyperref[graph:BLG5]{Graph9}}. Despite this significant gap, the second strategy still 
 demonstrated a slight improvement over the sequential version, achieving a speedup 
 of 1.18.
 
 As highlighted in the \textit{\hyperref[sec:metrics]{metrics section}}, the efficiency of parallelization strategies 
 can be quantified using the \textit{\hyperref[eq:efficiency]{efficiency equation}}. 
 As expected, the strategy that achieved the highest speedup also exhibited the highest 
-efficiency - \textit{(\hyperref[graph:BLG11]{Graph11})}. This efficiency metric serves as a 
+efficiency - \textit{\hyperref[graph:BLG11]{Graph11}}. This efficiency metric serves as a 
 validation of the achieved FLOPS by the parallelized versions, with the most 
 efficient strategy naturally capable of delivering higher FLOPS, as illustrated 
-in the \textit{(\hyperref[graph:BLG10]{Graph10})}.
+in the \textit{\hyperref[graph:BLG10]{Graph10}}.

@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.2.29)  15 MAR 2024 18:37
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.2.29)  15 MAR 2024 22:01
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/home/tomas/Uni/3ano/2semestre/cpd/g11/assign1/doc/report1/Latex/report1.tex
-(/home/tomas/Uni/3ano/2semestre/cpd/g11/assign1/doc/report1/Latex/report1.tex
+**/home/tomas/Uni/3ano/2semestre/cpd/g11/assign1/doc/Latex/report1.tex
+(/home/tomas/Uni/3ano/2semestre/cpd/g11/assign1/doc/Latex/report1.tex
 LaTeX2e <2021-11-15> patch level 1
 L3 programming layer <2022-01-21> (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2021/10/04 v1.4n Standard LaTeX document class
@@ -511,61 +511,79 @@ File: lstmisc.sty 2020/03/24 1.8d (Carsten Heinz)
 File: listings.cfg 2020/03/24 1.8d listings configuration
 ))
 Package: listings 2020/03/24 1.8d (Carsten Heinz)
-LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 20.
+ (/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+Package: geometry 2020/01/02 v5.9 Page Geometry
+ (/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
+)
+\Gm@cnth=\count320
+\Gm@cntv=\count321
+\c@Gm@tempcnt=\count322
+\Gm@bindingoffset=\dimen285
+\Gm@wd@mp=\dimen286
+\Gm@odd@mp=\dimen287
+\Gm@even@mp=\dimen288
+\Gm@layoutwidth=\dimen289
+\Gm@layoutheight=\dimen290
+\Gm@layouthoffset=\dimen291
+\Gm@layoutvoffset=\dimen292
+\Gm@dimlist=\toks39
+)
+LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 19.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 ) (/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2022-01-12 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count320
+\l__color_backend_stack_int=\count323
 \l__pdf_internal_box=\box66
-) (./report1.aux)
+)
+(./report1.aux)
 \openout1 = `report1.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-Package hyperref Info: Link coloring OFF on input line 20.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+Package hyperref Info: Link coloring OFF on input line 19.
  (/usr/share/texlive/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2021-04-02 v2.47 Cross-referencing by name of section
-
-(/usr/share/texlive/texmf-dist/tex/latex/refcount/refcount.sty
+ (/usr/share/texlive/texmf-dist/tex/latex/refcount/refcount.sty
 Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
 ) (/usr/share/texlive/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
-\c@section@level=\count321
+\c@section@level=\count324
 )
-LaTeX Info: Redefining \ref on input line 20.
-LaTeX Info: Redefining \pageref on input line 20.
-LaTeX Info: Redefining \nameref on input line 20.
+LaTeX Info: Redefining \ref on input line 19.
+LaTeX Info: Redefining \pageref on input line 19.
+LaTeX Info: Redefining \nameref on input line 19.
  (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count322
-\scratchdimen=\dimen285
+\scratchcounter=\count325
+\scratchdimen=\dimen293
 \scratchbox=\box67
-\nofMPsegments=\count323
-\nofMParguments=\count324
-\everyMPshowfont=\toks39
-\MPscratchCnt=\count325
-\MPscratchDim=\dimen286
-\MPnumerator=\count326
-\makeMPintoPDFobject=\count327
-\everyMPtoPDFconversion=\toks40
+\nofMPsegments=\count326
+\nofMParguments=\count327
+\everyMPshowfont=\toks40
+\MPscratchCnt=\count328
+\MPscratchDim=\dimen294
+\MPnumerator=\count329
+\makeMPintoPDFobject=\count330
+\everyMPtoPDFconversion=\toks41
 ) (/usr/share/texlive/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
@@ -577,12 +595,46 @@ Package pgfplots notification 'compat/show suggested version=true': you might be
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: listings package is loaded.
 Package caption Info: End \AtBeginDocument code.
-\c@lstlisting=\count328
+\c@lstlisting=\count331
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+*geometry* verbose mode - [ preamble ] result:
+* driver: pdftex
+* paper: <default>
+* layout: <same size as paper>
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.26999pt, 469.75502pt, 72.26999pt)
+* v-part:(T,H,B)=(72.26999pt, 650.43001pt, 72.26999pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75502pt
+* \textheight=650.43001pt
+* \oddsidemargin=0.0pt
+* \evensidemargin=0.0pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=10.0pt
+* \footskip=30.0pt
+* \marginparwidth=65.0pt
+* \marginparsep=11.0pt
+* \columnsep=10.0pt
+* \skip\footins=9.0pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \@twocolumnfalse
+* \@twosidefalse
+* \@mparswitchfalse
+* \@reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
 <figures//uporto-feup.pdf, id=7, 338.26375pt x 126.4725pt>
 File: figures//uporto-feup.pdf Graphic file (type pdf)
 <use figures//uporto-feup.pdf>
-Package pdftex.def Info: figures//uporto-feup.pdf  used on input line 39.
-(pdftex.def)             Requested size: 207.0021pt x 77.39705pt.
+Package pdftex.def Info: figures//uporto-feup.pdf  used on input line 38.
+(pdftex.def)             Requested size: 281.85587pt x 105.38512pt.
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <./figures//uporto-feup.pdf>] (./report1.toc
@@ -615,17 +667,12 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
 pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.46 \newpage
+l.45 \newpage
               [1] (./problemDescription.tex) (./algorithms.tex
 LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 14.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-)) (./metrics.tex [2]
-Overfull \hbox (4.74681pt too wide) in paragraph at lines 28--33
-[]\OT1/ptm/b/n/10 GFlops \OT1/ptm/m/n/10 - This met-ric, de-rived from "\OT1/ptm/b/n/10 G\OT1/ptm/m/n/10 iga \OT1/ptm/b/n/10 Fl\OT1/ptm/m/n/10 oating-point \OT1/ptm/b/n/10 O\OT1/ptm/m/n/10 perations \OT1/ptm/b/n/10 p\OT1/ptm/m/n/10 er \OT1/ptm/b/n/10 S\OT1/ptm/m/n/10 econd",
- []
-
-[3]) (./results.tex [4] [5] (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
+)) (./metrics.tex [2]) (./results.tex [3] [4] (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2020/03/24 1.8d listings language file
 ) (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2020/03/24 1.8d listings language file
@@ -645,72 +692,37 @@ File: omsptm.fd
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 102.
-) (./conclusion.tex [6]) [7] (./annexes.tex
+) (./conclusion.tex) [5] (./annexes.tex
 PGFPlots: reading {data/basicC++.csv}
 PGFPlots: reading {data/basicRust.csv}
 PGFPlots: reading {data/lineC++.csv}
 PGFPlots: reading {data/lineRust.csv}
-
-Overfull \hbox (8.69968pt too wide) in paragraph at lines 24--25
- [][] 
- []
-
 PGFPlots: reading {data/lineL2.csv}
 PGFPlots: reading {data/lineL1.csv}
 PGFPlots: reading {data/basicL1.csv}
 PGFPlots: reading {data/basicL2.csv}
-
-Overfull \hbox (23.62717pt too wide) in paragraph at lines 51--52
- [][] 
- []
-
 PGFPlots: reading {data/basicGFLOPSxDimension.csv}
 PGFPlots: reading {data/lineGFLOPSxDimension.csv}
 PGFPlots: reading {data/block4096.csv}
 PGFPlots: reading {data/block6144.csv}
 PGFPlots: reading {data/block8192.csv}
 PGFPlots: reading {data/block10240.csv}
-
-Overfull \hbox (21.91031pt too wide) in paragraph at lines 95--96
- [][] 
- []
-
 PGFPlots: reading {data/block128Time.csv}
 PGFPlots: reading {data/block256Time.csv}
 PGFPlots: reading {data/block512Time.csv}
 PGFPlots: reading {data/lineFullDimTime.csv}
-
-Overfull \hbox (8.70004pt too wide) in paragraph at lines 118--119
- [][] 
- []
-
 PGFPlots: reading {data/block128L1.csv}
 PGFPlots: reading {data/block256L1.csv}
 PGFPlots: reading {data/block512L1.csv}
 PGFPlots: reading {data/lineFullDimL1.csv}
-
-Overfull \hbox (26.21753pt too wide) in paragraph at lines 145--146
- [][] 
- []
-
 PGFPlots: reading {data/block128L2.csv}
 PGFPlots: reading {data/block256L2.csv}
 PGFPlots: reading {data/block512L2.csv}
 PGFPlots: reading {data/lineFullDimL2.csv}
-
-Overfull \hbox (18.44763pt too wide) in paragraph at lines 173--174
- [][] 
- []
-
 PGFPlots: reading {data/GFLOPSBlock128.csv}
 PGFPlots: reading {data/GFLOPSBlock256.csv}
 PGFPlots: reading {data/GFLOPSBlock512.csv}
 PGFPlots: reading {data/GFLOPSLine.csv}
-
-Overfull \hbox (4.83493pt too wide) in paragraph at lines 196--197
- [][] 
- []
-
 PGFPlots: reading {data/speedUpxDimensionP1.csv}
 PGFPlots: reading {data/speedUpxDimensionP2.csv}
 PGFPlots: reading {data/GFLOPSP1.csv}
@@ -718,20 +730,20 @@ PGFPlots: reading {data/GFLOPSP2.csv}
 PGFPlots: reading {data/lineFullGFLOPS.csv}
 PGFPlots: reading {data/EfficiencyP1.csv}
 PGFPlots: reading {data/EfficiencyP2.csv}
-) [8] [9] [10] [11] [12] [13] [14] (./report1.aux) ) 
+) [6] [7] [8] [9] [10] [11] (./report1.aux) ) 
 Here is how much of TeX's memory you used:
- 33548 strings out of 478287
- 777554 string characters out of 5849289
- 1352627 words of memory out of 5000000
- 51062 multiletter control sequences out of 15000+600000
+ 34031 strings out of 478287
+ 785124 string characters out of 5849289
+ 1367023 words of memory out of 5000000
+ 51543 multiletter control sequences out of 15000+600000
  502354 words of font info for 83 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,19n,103p,789b,2435s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 99i,19n,103p,781b,2435s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/symbol/usyr.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on report1.pdf (15 pages, 141106 bytes).
+Output written on report1.pdf (12 pages, 138350 bytes).
 PDF statistics:
- 253 PDF objects out of 1000 (max. 8388607)
- 217 compressed objects within 3 object streams
- 64 named destinations out of 1000 (max. 500000)
+ 241 PDF objects out of 1000 (max. 8388607)
+ 208 compressed objects within 3 object streams
+ 61 named destinations out of 1000 (max. 500000)
  130 words of extra memory for PDF output out of 10000 (max. 10000000)
 
