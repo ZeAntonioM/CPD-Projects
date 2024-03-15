@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1710540113 "/home/tomas/Uni/3ano/2semestre/cpd/g11/assign1/doc/Latex/report1.tex" "report1.pdf" "report1" 1710540114
+["pdflatex"] 1710541400 "/home/tomas/Uni/3ano/2semestre/cpd/g11/assign1/doc/Latex/report1.tex" "report1.pdf" "report1" 1710541401
   "/etc/texmf/web2c/texmf.cnf" 1709228458 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/home/tomas/Uni/3ano/2semestre/cpd/g11/assign1/doc/Latex/report1.tex" 1710539439 1397 6287ef1d610db4f9d1551a939c0ad7c2 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
@@ -217,7 +217,7 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1644012257 39432 7155514e09a3d69036fac785183a21c2 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1709228470 4379155 98693266ff65f58d9f98aff394de12d2 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1709228489 2800228 8523109a0e4c7afb5b54d94f79a4fb50 ""
-  "algorithms.tex" 1710540045 2952 61ea7003ed3b915920421e58699c5441 ""
+  "algorithms.tex" 1710541400 2877 34255a5094b1e50ca81b89d87ddd6b5f ""
   "annexes.tex" 1710527679 10029 c0c8c708706235cda9b40c498b6990a2 ""
   "conclusion.tex" 1710514660 20 b50204e17c0a475d3d65191e029fdf1d ""
   "data/EfficiencyP1.csv" 1710514660 220 a309aec96da5fbcd4dd888d8347052e0 ""
@@ -260,10 +260,10 @@
   "figures//uporto-feup.pdf" 1710514660 12740 0bd34fcc2c83189d41299a9453e17a77 ""
   "metrics.tex" 1710539979 3032 aea134625b1c7f338770803ad1304666 ""
   "problemDescription.tex" 1710514660 323 88125cc2473d8edc9b8c8267b0322ce2 ""
-  "report1.aux" 1710540114 10943 07a711b3e37811a790b2a9b8a30e6c03 "pdflatex"
+  "report1.aux" 1710541401 10943 eb399750760ff4e364f3a1083bf15d62 "pdflatex"
   "report1.tex" 1710539439 1397 6287ef1d610db4f9d1551a939c0ad7c2 ""
-  "report1.toc" 1710540114 1238 1e0cd353c5a3eb526aef8590a7f9fc27 "pdflatex"
-  "results.tex" 1710540113 7741 442ed6278e754dc73b4c97574f69f499 ""
+  "report1.toc" 1710541401 1238 1e0cd353c5a3eb526aef8590a7f9fc27 "pdflatex"
+  "results.tex" 1710541068 7741 442ed6278e754dc73b4c97574f69f499 ""
   (generated)
   "report1.aux"
   "report1.log"
