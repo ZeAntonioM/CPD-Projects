@@ -970,6 +970,7 @@ INPUT conclusion.tex
 INPUT ./conclusion.tex
 INPUT ./conclusion.tex
 INPUT conclusion.tex
+INPUT /usr/share/texlive/texmf-dist/fonts/vf/adobe/times/ptmri7t.vf
 INPUT ./Annexes.tex
 INPUT ./Annexes.tex
 INPUT ./Annexes.tex
@@ -991,8 +992,10 @@ INPUT data/block4096.csv
 INPUT data/block6144.csv
 INPUT data/block8192.csv
 INPUT data/block10240.csv
-INPUT data/speedUpxDimensionP1.csv
-INPUT data/speedUpxDimensionP2.csv
+INPUT data/block128Time.csv
+INPUT data/block256Time.csv
+INPUT data/block512Time.csv
+INPUT data/lineFullDimTime.csv
 INPUT data/block128L1.csv
 INPUT data/block256L1.csv
 INPUT data/block512L1.csv
@@ -1001,14 +1004,12 @@ INPUT data/block128L2.csv
 INPUT data/block256L2.csv
 INPUT data/block512L2.csv
 INPUT data/lineFullDimL2.csv
-INPUT data/block128Time.csv
-INPUT data/block256Time.csv
-INPUT data/block512Time.csv
-INPUT data/lineFullDimTime.csv
 INPUT data/GFLOPSBlock128.csv
 INPUT data/GFLOPSBlock256.csv
 INPUT data/GFLOPSBlock512.csv
 INPUT data/GFLOPSLine.csv
+INPUT data/speedUpxDimensionP1.csv
+INPUT data/speedUpxDimensionP2.csv
 INPUT report1.aux
 INPUT /usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb

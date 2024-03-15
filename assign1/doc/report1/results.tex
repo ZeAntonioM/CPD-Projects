@@ -14,13 +14,13 @@ creation of highly optimized code. This is apparent
 when comparing the execution times of basic and line 
 multiplication algorithms, where both C++ and Rust 
 implementations demonstrate \textbf{similar performance}, as 
-depicted in the \textbf{\hyperref[graph:BLG1]{Graph1}.}
+depicted in the \textit{(\hyperref[graph:BLG1]{Graph1}).}
 
 Comparing the execution times of both algorithms, 
 it's clear that the line multiplication algorithm 
 \textbf{surpasses the basic multiplication algorithm in 
-terms of speed} - \textbf{\hyperref[graph:BLG1]{Graph1}.} This can also be
-evident in the \textbf{\hyperref[graph:BLG2]{Graph2}}, 
+terms of speed} - \textit{(\hyperref[graph:BLG1]{Graph1}).} This can also be
+evident in the \textit{(\hyperref[graph:BLG2]{Graph2})}, 
 where the line multiplication algorithm demonstrates 
 \textbf{fewer L1 and L2 cache misses} compared to its basic 
 counterpart, resulting in a reduced execution time. 
@@ -33,9 +33,16 @@ access to cache}. While there may be a
 slight decline in FLOPS as matrix dimensions increase, the 
 line multiplication algorithm exhibits 
 greater stability in its performance compared to the 
-basic algorithm as depicted in \textbf{\hyperref[graph:BLG3]{Graph3}}.
+basic algorithm as depicted in \textit{(\hyperref[graph:BLG3]{Graph3})}.
 
 \subsection{Block multiplication and Line multiplication comparison}
-
-
+While performing the block multiplication algorithm, it was
+possible to observe that for most of the matrix dimensions,
+the block sizes of 512 and 256 outperformed the block size of 128
+in terms of execution time eventhough the difference is
+not quiet significant concluding that block size does not influence
+the performance when comparing the performance of each block size.
+ This is evident in the \textit{(\hyperref[graph:BLG4]{Graph4})} and 
+\textit{(\hyperref[graph:BLG8]{Graph5})} as the execution time
+for all block sizes are similar.
 

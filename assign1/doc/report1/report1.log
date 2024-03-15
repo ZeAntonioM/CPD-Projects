@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.3.13)  13 MAR 2024 23:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.3.13)  14 MAR 2024 12:20
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -601,7 +601,7 @@ Overfull \hbox (4.74681pt too wide) in paragraph at lines 27--32
 []\OT1/ptm/b/n/10 GFlops \OT1/ptm/m/n/10 - This met-ric, de-rived from "\OT1/ptm/b/n/10 G\OT1/ptm/m/n/10 iga \OT1/ptm/b/n/10 Fl\OT1/ptm/m/n/10 oating-point \OT1/ptm/b/n/10 O\OT1/ptm/m/n/10 perations \OT1/ptm/b/n/10 p\OT1/ptm/m/n/10 er \OT1/ptm/b/n/10 S\OT1/ptm/m/n/10 econd",
  []
 
-[3]) (./results.tex) (./conclusion.tex) (./Annexes.tex
+[3]) (./results.tex) (./conclusion.tex [4]) (./Annexes.tex
 PGFPlots: reading {data/basicC++.csv}
 PGFPlots: reading {data/basicRust.csv}
 PGFPlots: reading {data/lineC++.csv}
@@ -627,27 +627,7 @@ PGFPlots: reading {data/block6144.csv}
 PGFPlots: reading {data/block8192.csv}
 PGFPlots: reading {data/block10240.csv}
 
-Overfull \hbox (21.91031pt too wide) in paragraph at lines 99--100
- [][] 
- []
-
-PGFPlots: reading {data/speedUpxDimensionP1.csv}
-PGFPlots: reading {data/speedUpxDimensionP2.csv}
-PGFPlots: reading {data/block128L1.csv}
-PGFPlots: reading {data/block256L1.csv}
-PGFPlots: reading {data/block512L1.csv}
-PGFPlots: reading {data/lineFullDimL1.csv}
-
-Overfull \hbox (26.21753pt too wide) in paragraph at lines 148--149
- [][] 
- []
-
-PGFPlots: reading {data/block128L2.csv}
-PGFPlots: reading {data/block256L2.csv}
-PGFPlots: reading {data/block512L2.csv}
-PGFPlots: reading {data/lineFullDimL2.csv}
-
-Overfull \hbox (18.44763pt too wide) in paragraph at lines 176--177
+Overfull \hbox (21.91031pt too wide) in paragraph at lines 95--96
  [][] 
  []
 
@@ -656,7 +636,25 @@ PGFPlots: reading {data/block256Time.csv}
 PGFPlots: reading {data/block512Time.csv}
 PGFPlots: reading {data/lineFullDimTime.csv}
 
-Overfull \hbox (16.81262pt too wide) in paragraph at lines 203--204
+Overfull \hbox (8.70004pt too wide) in paragraph at lines 118--119
+ [][] 
+ []
+
+PGFPlots: reading {data/block128L1.csv}
+PGFPlots: reading {data/block256L1.csv}
+PGFPlots: reading {data/block512L1.csv}
+PGFPlots: reading {data/lineFullDimL1.csv}
+
+Overfull \hbox (26.21753pt too wide) in paragraph at lines 145--146
+ [][] 
+ []
+
+PGFPlots: reading {data/block128L2.csv}
+PGFPlots: reading {data/block256L2.csv}
+PGFPlots: reading {data/block512L2.csv}
+PGFPlots: reading {data/lineFullDimL2.csv}
+
+Overfull \hbox (18.44763pt too wide) in paragraph at lines 173--174
  [][] 
  []
 
@@ -665,24 +663,26 @@ PGFPlots: reading {data/GFLOPSBlock256.csv}
 PGFPlots: reading {data/GFLOPSBlock512.csv}
 PGFPlots: reading {data/GFLOPSLine.csv}
 
-Overfull \hbox (24.58252pt too wide) in paragraph at lines 230--231
+Overfull \hbox (4.83493pt too wide) in paragraph at lines 196--197
  [][] 
  []
 
-) [4] [5] [6] [7] [8] [9] [10] (./report1.aux) ) 
+PGFPlots: reading {data/speedUpxDimensionP1.csv}
+PGFPlots: reading {data/speedUpxDimensionP2.csv}
+) [5] [6] [7] [8] [9] [10] (./report1.aux) ) 
 Here is how much of TeX's memory you used:
  31669 strings out of 478287
  752087 string characters out of 5849289
- 1239744 words of memory out of 5000000
+ 1233639 words of memory out of 5000000
  49245 multiletter control sequences out of 15000+600000
  502354 words of font info for 83 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  99i,19n,103p,783b,2435s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/symbol/usyr.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on report1.pdf (11 pages, 125203 bytes).
+Output written on report1.pdf (11 pages, 126586 bytes).
 PDF statistics:
- 195 PDF objects out of 1000 (max. 8388607)
- 164 compressed objects within 2 object streams
+ 197 PDF objects out of 1000 (max. 8388607)
+ 166 compressed objects within 2 object streams
  38 named destinations out of 1000 (max. 500000)
  122 words of extra memory for PDF output out of 10000 (max. 10000000)
 
