@@ -1,0 +1,55 @@
+\documentclass{article}
+\usepackage{hyperref} % Add this line
+\usepackage{graphicx}
+\usepackage{mathptmx} % Add this line
+\usepackage{indentfirst} % Add this line
+\usepackage{amsmath}
+\usepackage{pgfplots}
+\usepackage{bookmark}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{geometry} % Add this line
+
+\pgfplotsset{width=10cm,compat=1.9}
+\captionsetup[figure]{name=Graph}
+\graphicspath{{figures/}}
+\geometry{margin=1in} % Add this line
+
+\begin{document}
+\title{CPD Project 1 - Performance evaluation}
+\date{\today}
+
+% Cover Page
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    {\scshape\LARGE FACULDADE DE ENGENHARIA DA UNIVERSIDADE DO PORTO \par}
+    \vspace{1.5cm}
+    {\scshape\Large Computação Paralela e Distribuída \par}
+    \vspace{2cm}
+    {\huge\bfseries CPD Project 1 - Performance evaluation \par}
+    \vspace{2.5cm}
+    {\Large\itshape António Henrique Martinz Azevedo (202108689) \par}  
+    {\Large\itshape José António Pereira Martins (202108794) \par}
+    {\Large\itshape Tomás Eiras Silva Martins (202108776) \par}
+    \vfill
+    \vspace{1cm}
+    \includegraphics[width=0.6\textwidth]{uporto-feup.pdf}\par\vspace{1cm}
+    \vfill
+    {\large \today\par}
+\end{titlepage}
+
+
+\tableofcontents
+\newpage
+
+\input{problemDescription}
+\input{algorithms}
+\input{metrics}
+\input{results}
+\input{conclusion}
+\newpage
+\input{annexes}
+
+\end{document}
