@@ -1,0 +1,114 @@
+{
+  "Hangman": [
+    {
+      "theme": "Animals",
+      "words": [
+        "Dog"         , "Cat"         , "Dolphin"     , "Elephant"    ,
+        "Lion"        , "Zebra"       , "Cavalo"      , "Parrot"      ,
+        "Crocodile"   , "Monkey"      , "Snake"       , "Bear"        ,
+        "Whale"       , "Hippo"       , "Giraffe"     , "Kangaroo"    ,
+        "Tiger"       , "Cheetah"     , "Rhinoceros"  , "Owl"         ,
+        "Eagle"       , "Shark"       , "Butterfly"   , "Fox"         ,
+        "Rabbit"      , "Wolf"        , "Deer"        , "Turtle"      ,
+        "Penguin"     , "Flamingo"    , "Koala"       , "Panda"       ,
+        "Kangaroo"    , "Hippopotamus", "Rhinoceros"  , "Walrus"      ,
+        "Seahorse"    , "Jellyfish"   , "Octopus"     , "Crab"        ,
+        "Lobster"     , "Spider"      , "Scorpion"    , "Ant"         ,
+        "Bee"         , "Ladybug"     , "Frog"        , "Toad"        ,
+        "Lizard"      , "Chameleon"   , "Snake"       , "Parrot"      ,
+        "Penguin"     , "Peacock"     , "Ostrich"     , "Hummingbird" ,
+        "Toucan"      , "Flamingo"    , "Parakeet"    , "Macaw"       ,
+        "Eagle"
+      ]
+    },
+    {
+      "theme": "Countries",
+      "words": [
+        "Portugal"     , "Spain"        , "France"       , "Germany"      ,
+        "Italy"        , "United States", "Brazil"       , "China"        ,
+        "Japan"        , "Canada"       , "Australia"    , "Russia"       ,
+        "India"        , "Mexico"       , "Egypt"        , "South Africa" ,
+        "Argentina"    , "England"      , "Ireland"      , "New Zealand"  ,
+        "Indonesia"    , "Nigeria"      , "Thailand"     , "Colombia"     ,
+        "South Korea"  , "Argentina"    , "Kenya"        , "Ethiopia"     ,
+        "Vietnam"      , "Poland"       , "Iran"         , "Turkey"       ,
+        "Saudi Arabia" , "Peru"         , "Chile"        , "Venezuela"    ,
+        "Morocco"      , "Algeria"      , "Ukraine"      , "Iraq"         ,
+        "Afghanistan"
+      ]
+    },
+    {
+      "theme": "Food",
+      "words": [
+        "Pizza"     , "Pasta"     , "Hamburger" , "Sushi"     , "Burrito"   ,
+        "Salad"     , "Ice Cream" , "Chocolate" , "Fruits"    , "Soup"      ,
+        "Sandwiches", "Cake"      , "Chicken"   , "Fish"      , "Taco"      ,
+        "Hotdog"    , "Fries"     , "Cookie"    , "Candy"     , "Bread"     ,
+        "Rice"      , "Noodles"   , "Eggs"      , "Yogurt"    , "Cheese"    ,
+        "Steak"     , "Fruits"    , "Vegetables", "Pancakes"  , "Waffles"   ,
+        "Soup"      , "Pasta"     , "Seafood"
+      ]
+    },
+    {
+      "theme": "Sports",
+      "words": [
+        "Football"       , "Basketball"     , "Tennis"         ,
+        "Baseball"       , "Soccer"         , "Swimming"       ,
+        "Cycling"        , "Gymnastics"     , "Volleyball"     ,
+        "Hockey"         , "Golf"           , "Boxing"         ,
+        "Badminton"      , "Archery"        , "Curling"        ,
+        "Rugby"          , "Cricket"        , "Surfing"        ,
+        "Skateboarding"  , "Track and Field", "Martial Arts"   ,
+        "Figure Skating" , "Weightlifting"  , "Bowling"        ,
+        "Rowing"         , "Sailing"        , "Climbing"       ,
+        "Horse Racing"   , "Motorsports"    , "Basketball"     ,
+        "Tennis"         , "Badminton"      , "Table Tennis"   ,
+        "Handball"       , "Squash"         , "Fencing"        ,
+        "Judo"           , "Taekwondo"      , "Wrestling"
+      ]
+    },
+    {
+      "theme": "Professions",
+      "words": [
+        "Doctor"              , "Teacher"             , "Engineer"            ,
+        "Lawyer"              , "Police Officer"      , "Firefighter"         ,
+        "Musician"            , "Artist"              , "Writer"              ,
+        "Programmer"          , "Nurse"               , "Chef"                ,
+        "Dentist"             , "Pilot"               , "Veterinarian"        ,
+        "Architect"           , "Accountant"          , "Mechanic"            ,
+        "Hairdresser"         , "Therapist"           , "Web Developer"       ,
+        "Baker"               , "Bartender"           , "Blogger"             ,
+        "Bus Driver"          , "Carpenter"           , "Cashier"             ,
+        "Construction Worker" , "Electrician"         , "Entrepreneur"        ,
+        "Farmer"              , "Flight Attendant"    , "Gardener"            ,
+        "Graphic Designer"    , "Housekeeper"         , "Interior Designer"   ,
+        "Interpreter"         , "Janitor"             , "Journalist"          ,
+        "Librarian"           , "Lifeguard"           , "Mail Carrier"        ,
+        "Makeup Artist"       , "Manager"             , "Marketing Specialist",
+        "Massage Therapist"   , "Math Teacher"        , "Model"               ,
+        "Mortician"           , "Music Teacher"       , "Paramedic"           ,
+        "Pharmacist"          , "Physical Therapist"  , "Plumber"             ,
+        "Police Detective"    , "Politician"          , "Postal Worker"       ,
+        "Receptionist"        , "Restaurant Manager"  , "Retail Worker"       ,
+        "Salesperson"         , "Scientist"           , "Secretary"           ,
+        "Security Guard"      , "Social Worker"       , "Software Engineer"   ,
+        "Taxi Driver"         , "Translator"          , "Travel Agent"        ,
+        "Truck Driver"        , "Waiter/Waitress"     , "Web Designer"        ,
+        "Welder"              , "Actor"               , "Actress"             ,
+        "Anthropologist"      , "Archaeologist"       , "Astronaut"           ,
+        "Astronomer"          , "Athlete"             , "Author"              ,
+        "Biologist"           , "Chemist"             , "Dancer"              ,
+        "Dentist"             , "Ecologist"           , "Fashion Designer"    ,
+        "Filmmaker"           , "Geologist"           , "Historian"           ,
+        "Lawyer"              , "Librarian"           , "Mathematician"       ,
+        "Meteorologist"       , "Oceanographer"       , "Paleontologist"      ,
+        "Photographer"        , "Phlebotomist"        , "Physical Therapist"  ,
+        "Pilot"               , "Plumber"             , "Police Officer"      ,
+        "Politician"          , "Priest"              , "Psychologist"        ,
+        "Radiologist"         , "Software Engineer"   , "Sociologist"         ,
+        "Surgeon"             , "Teacher"             , "Veterinarian"        ,
+        "Yoga Instructor"     , "Zoologist"
+      ]
+    }
+  ]
+}
