@@ -5,10 +5,11 @@ import java.util.List;
 public class Game {
     private List<Sockets> userSockets;
     private int players;
-
-    public Game(int players, List<Sockets> userSockets) {
+    private boolean ranked;
+    public Game(int players, List<Sockets> userSockets, boolean ranked) {
         this.userSockets = userSockets;
         this.players = players;
+        this.ranked = ranked;
     }
 
     public void start() {
