@@ -1,23 +1,56 @@
 package fe.up.pt;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.List;
 
 public class Server {
     private final int port;
     private final int mode;
+    private Dictionary<String, List<String>> word_list;
     private ServerSocketChannel serverSocketChannel;
     private static final int maxPlayers = 5;
-    private final Connection connection;
 
     public Server(int port, int mode, String host){
        this.port = port;
        this.mode = mode;
-       this.connection = new Connection(this.port, host);
+       this.word_list = readWordList();
+    }
+
+    private Dictionary<String, List<String>> readWordList(){
+        Dictionary<String, List<String>> wordList = new Hashtable<>();
+        String line = "";
+
+        try (BufferedReader br = new BufferedReader(new FileReader("src\\main\\java\\fe\\up\\pt\\word_list.csv"))) {
+            while ((line = br.readLine()) != null) {
+                // use comma as separator
+                String[] data = line.split(",");
+                String theme = data[0];
+                String word = data[1];
+                List<String> words = wordList.get(theme);
+
+                if (words == null) {
+                    words = new ArrayList<>();
+                    wordList.put(theme, words);
+                }
+                else {
+                    words.add(word);
+                }
+
+            }
+        } catch (IOException ignored) {
+        }
+
+        return wordList;
     }
 
     public void start() throws IOException {
@@ -32,20 +65,39 @@ public class Server {
         boolean run = true;
 
         while (run){
-            System.out.println("Waiting for connection...");
             SocketChannel client = server.serverSocketChannel.accept();
-            System.out.println("Client connected from " + client.getRemoteAddress());
             ByteBuffer buffer = ByteBuffer.allocate(1024);
             client.read(buffer);
-            //print message in buffer
-            System.out.println(new String(buffer.array(), StandardCharsets.UTF_8));
+            buffer.flip();
+            ByteBuffer validBuffer = ByteBuffer.allocate(buffer.remaining());
+            validBuffer.put(buffer);
+            validBuffer.flip();
+
+            String message = new String(validBuffer.array(), StandardCharsets.UTF_8);
+            switch (message.split(":")[0].trim()) {
+                case "LGN":
+                    System.out.println("Login request received!");
+                    System.out.println("Username: " + message.split(":")[1]);
+                    System.out.println("Password: " + message.split(":")[2]);
+                    break;
+                case "REG":
+                    System.out.println("Register request received!");
+                    System.out.println("Username: " + message.split(":")[1]);
+                    System.out.println("Password: " + message.split(":")[2]);
+                    break;
+                case "OUT":
+                    System.out.println("Logout request received!");
+                    System.out.println("Token: " + message.split(":")[1]);
+                    run = false;
+                    break;
+                default:
+                    System.out.println("Unknown request received!");
+                    break;
+            }
             // respond to client
             client.write(ByteBuffer.wrap("Hello client!".getBytes()));
-            System.out.println("Message sent to client!");
-            run = false;
 
         }
-
         server.serverSocketChannel.close();
     }
 }

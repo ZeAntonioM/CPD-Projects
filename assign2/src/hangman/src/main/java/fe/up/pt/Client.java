@@ -1,10 +1,5 @@
 package fe.up.pt;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-
 public class Client {
 
     private final String username;

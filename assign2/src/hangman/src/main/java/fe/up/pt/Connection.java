@@ -27,7 +27,7 @@ public class Connection {
       System.out.println("Connection closed!");
    }
 
-   public void send(String message) throws IOException {
+   private void send(String message) throws IOException {
       this.socket.write(ByteBuffer.wrap(message.getBytes()));
       System.out.println("Sent message: " + message);
    }
@@ -38,15 +38,26 @@ public class Connection {
       return new String(buffer.array()).trim();
    }
 
+   public void sendLogin(String username, String password) throws IOException {
+      this.send("LGN:" + username + ":" + password);
+   }
+
+    public void sendRegister(String username, String password) throws IOException {
+        this.send("REG:" + username + ":" + password);
+    }
+
+    public void sendLogout(String sessionToken) throws IOException {
+        this.send("OUT:" + sessionToken);
+    }
+
    public static void main(String[] args) throws IOException {
       Connection connection = new Connection(12345, "localhost");
       connection.connect();
-      connection.send("Hello server!");
+      //connection.sendLogin("user", "pass");
+      //connection.sendRegister("user", "pass");
+      //connection.sendLogout("token");
       String message = connection.receive();
       System.out.println("Received message: " + message);
       connection.disconnect();
    }
-
-
-
 }
