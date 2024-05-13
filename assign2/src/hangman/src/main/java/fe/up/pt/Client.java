@@ -4,7 +4,7 @@ public class Client {
 
     private final String username;
     private final String password;
-    private final String token;
+    private String token;
     private int rank;
     public Client (String username, String password, String token, int rank) {
         this.username = username;
@@ -16,10 +16,21 @@ public class Client {
     public String getUsername(){
         return this.username;
     }
+    public String getPassword() {
+        return this.password;
+    }
 
    public int getRank(){
         return this.rank;
    }
+
+   public String getToken(){
+        return this.token;
+   }
+
+    public void setToken(String token){
+          this.token = token;
+    }
 
    public void increaseRank(int points){
         this.rank += points;

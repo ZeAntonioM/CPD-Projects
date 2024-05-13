@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.Scanner;
 
 public class Connection {
 
@@ -53,11 +54,42 @@ public class Connection {
    public static void main(String[] args) throws IOException {
       Connection connection = new Connection(12345, "localhost");
       connection.connect();
-      //connection.sendLogin("user", "pass");
-      //connection.sendRegister("user", "pass");
-      //connection.sendLogout("token");
-      String message = connection.receive();
-      System.out.println("Received message: " + message);
+
+      Scanner scanner = new Scanner(System.in);
+
+
+        boolean active = true;
+        while(active) {
+           System.out.println("Login (L), Register (R) or Logout (O)?");
+           String action = scanner.nextLine();
+           while (!action.equals("L") && !action.equals("R") && !action.equals("O")) {
+              System.out.println("Invalid action. Login (L), Register (R) or Logout (O)?");
+              action = scanner.nextLine();
+           }
+           if (action.equals("L")) {
+              System.out.println("Enter username: ");
+              String username = scanner.nextLine();
+              System.out.println("Enter password: ");
+              String password = scanner.nextLine();
+
+              connection.sendLogin(username, password);
+           } else if (action.equals("R")) {
+              System.out.println("Enter username: ");
+              String username = scanner.nextLine();
+              System.out.println("Enter password: ");
+              String password = scanner.nextLine();
+
+              connection.sendRegister(username, password);
+           } else {
+              System.out.println("Enter session token: ");
+              String token = scanner.nextLine();
+              connection.sendLogout(token);
+              active = false;
+           }
+
+              String message = connection.receive();
+                System.out.println("Received message: " + message);
+        }
       connection.disconnect();
    }
 }
