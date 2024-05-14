@@ -62,6 +62,8 @@ public class Connection {
 
 
 
+
+
    private void setTokenFromSuccessMessage(String message){
       if (message.split(":")[0].trim().equals("SUC") && message.length() > 3){
          this.sessionToken = message.split(":")[1].trim();
