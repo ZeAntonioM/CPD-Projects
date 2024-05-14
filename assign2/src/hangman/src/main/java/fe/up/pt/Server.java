@@ -122,7 +122,7 @@ public class Server {
             }
         }
         String token = UUID.randomUUID().toString();
-        Client newUser = new Client(username, password, token,0);
+        Client newUser = new Client(username, password, token,1000);
         try {
             // Open the file
             FileWriter fileWriter = new FileWriter("src\\main\\java\\fe\\up\\pt\\users.csv", true);
@@ -153,52 +153,50 @@ public class Server {
         server.start();
         boolean run = true;
 
+        //TODO: seperate this loop on threads
         while (run){
-            //WARNING: THIS IS BROKEN, DOES NOT WORK WITH MULTIPLE CONNECTIONS FROM THE SAME CLIENT
-            //TODO: change this to loop through readMessage instead of accept
             SocketChannel client = server.serverSocketChannel.accept();
-            String message = server.readMessage(client);
-            switch (message.split(":")[0].trim()) {
-                case "LGN":
-                    System.out.println("Login request received!");
+            while (run) {
+                String message = server.readMessage(client);
+                switch (message.split(":")[0].trim()) {
+                    case "LGN":
+                        System.out.println("Login request received!");
 
-                    Client user = server.loginUser(message.split(":")[1], message.split(":")[2]);
-                    if (user != null){
-                        server.sendMessage(client, "SUC:" + user.getToken());
-                    }
-                    else {
-                        server.sendMessage(client, "ERR");
-                    }
+                        Client user = server.loginUser(message.split(":")[1], message.split(":")[2]);
+                        if (user != null) {
+                            server.sendMessage(client, "SUC:" + user.getToken());
+                        } else {
+                            server.sendMessage(client, "ERR");
+                        }
 
-                    break;
-                case "REG":
-                    System.out.println("Register request received!");
+                        break;
+                    case "REG":
+                        System.out.println("Register request received!");
 
-                    Client newUser = server.registerUser(message.split(":")[1], message.split(":")[2]);
-                    if (newUser != null){
-                        server.sendMessage(client, "SUC:" + newUser.getToken());
-                    }
-                    else {
-                        server.sendMessage(client, "ERR");
-                    }
+                        Client newUser = server.registerUser(message.split(":")[1], message.split(":")[2]);
+                        if (newUser != null) {
+                            server.sendMessage(client, "SUC:" + newUser.getToken());
+                        } else {
+                            server.sendMessage(client, "ERR");
+                        }
 
-                    break;
-                case "OUT":
-                    System.out.println("Logout request received!");
+                        break;
+                    case "OUT":
+                        System.out.println("Logout request received!");
 
-                    if (server.logoutUser(message.split(":")[1])){
-                        server.sendMessage(client, "SUC");
-                    }
-                    else {
-                        server.sendMessage(client, "ERR");
-                    }
+                        if (server.logoutUser(message.split(":")[1])) {
+                            server.sendMessage(client, "SUC");
+                        } else {
+                            server.sendMessage(client, "ERR");
+                        }
 
-                    if (server.loggedUsers.isEmpty()) run = false;
-                    System.out.println("Server shutting down!");
-                    break;
-                default:
-                    System.out.println("Unknown request received!");
-                    break;
+                        if (server.loggedUsers.isEmpty()) run = false;
+                        System.out.println("Server shutting down!");
+                        break;
+                    default:
+                        System.out.println("Unknown request received!");
+                        break;
+                }
             }
         }
         server.serverSocketChannel.close();
