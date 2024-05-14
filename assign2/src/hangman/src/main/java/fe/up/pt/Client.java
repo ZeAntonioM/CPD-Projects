@@ -32,7 +32,7 @@ public class Client {
           this.token = token;
     }
 
-   public void increaseRank(int points){
+    public void increaseRank(int points){
         this.rank += points;
    }
 

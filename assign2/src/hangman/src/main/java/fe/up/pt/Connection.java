@@ -11,6 +11,7 @@ public class Connection {
    private final int port;
    private final String host;
    private SocketChannel socket;
+   private String sessionToken;
 
    public Connection(int port, String host) {
       this.port = port;
@@ -50,6 +51,8 @@ public class Connection {
     public void sendLogout(String sessionToken) throws IOException {
         this.send("OUT:" + sessionToken);
     }
+
+
 
    public static void main(String[] args) throws IOException {
       Connection connection = new Connection(12345, "localhost");

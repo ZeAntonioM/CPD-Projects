@@ -189,7 +189,7 @@ public class Server {
                         } else {
                             server.sendMessage(client, "ERR");
                         }
-
+                        
                         if (server.loggedUsers.isEmpty()) run = false;
                         System.out.println("Server shutting down!");
                         break;
@@ -197,6 +197,7 @@ public class Server {
                         System.out.println("Unknown request received!");
                         break;
                 }
+
             }
         }
         server.serverSocketChannel.close();
