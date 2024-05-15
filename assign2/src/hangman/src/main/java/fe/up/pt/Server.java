@@ -34,7 +34,6 @@ public class Server {
         ServerSocket serverSocket = new ServerSocket(this.port);
 
         // Start the dedicated client handling thread
-        new Thread(new ClientHandler()).start();
 
         System.out.println("Server started on port " + this.port + "!");
         while (true) {
@@ -46,6 +45,7 @@ public class Server {
             try {
                 clientQueue[queueTail] = clientSocket;
                 queueTail = (queueTail + 1) % clientQueue.length; // Wrap-around logic
+                new Thread(new ClientHandler()).start();
                 notEmpty.signal(); // Signal the waiting client handling thread
             } finally {
                 queueLock.unlock();
