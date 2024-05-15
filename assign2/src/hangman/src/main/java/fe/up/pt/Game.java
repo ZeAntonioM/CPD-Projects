@@ -38,7 +38,7 @@ public class Game {
     public void start() throws IOException {
 
         for (int i = 0; i < this.players; i++) {
-            this.connections.get(i).sendGameStart();
+            //this.connections.get(i).sendGameStart();
         }
         System.out.println("Game started!");
 
@@ -49,7 +49,7 @@ public class Game {
             if (letter.length() > 1) {
                 if (letter.equals(this.word)) {
                     for (int i = 0; i < this.players; i++) {
-                        this.connections.get(i).sendGameEnd();
+                        //this.connections.get(i).sendGameEnd();
                     }
                     this.running = false;
                     break;
@@ -58,7 +58,7 @@ public class Game {
             this.guessedWord = this.word.replaceAll("[^" + letter + "]", "_");
 
             for (int i = 0; i < this.players; i++) {
-                this.connections.get(i).sendGameLetter(letter);
+                //this.connections.get(i).sendGameLetter(letter);
             }
 
         }
