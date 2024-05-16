@@ -50,7 +50,7 @@ public class Game {
     public void sendAskForGuess(User player) {
         try {
             //this.validateToken(player);
-            player.getSocket().getOutputStream().write(("GAG:" + player.getToken() + "\n").getBytes());
+            player.getSocket().getOutputStream().write(("GAG:" + player.getActiveToken() + "\n").getBytes());
         } catch (IOException e) {
             System.out.println("Error sending ask for guess message: " + e.getMessage());
         }
@@ -103,7 +103,7 @@ public class Game {
     private void sendGameStart(User player, String theme, String guessedWord) {
         try {
             //this.validateToken(player);
-            player.getSocket().getOutputStream().write(("GST:" + gameID + ":" + player.getToken() + ":" + theme + ":" + guessedWord + "\n").getBytes());
+            player.getSocket().getOutputStream().write(("GST:" + gameID + ":" + player.getActiveToken() + ":" + theme + ":" + guessedWord + "\n").getBytes());
         } catch (IOException e) {
             System.out.println("Error sending game start message: " + e.getMessage());
         }
@@ -112,7 +112,7 @@ public class Game {
     private void sendGameEnd(User player, String word) {
         try {
             //this.validateToken(player);
-            player.getSocket().getOutputStream().write(("GEN:" + gameID + ":" + player.getToken() + ":" + word + ":" + "\n").getBytes());
+            player.getSocket().getOutputStream().write(("GEN:" + gameID + ":" + player.getActiveToken() + ":" + word + ":" + "\n").getBytes());
         } catch (IOException e) {
             System.out.println("Error sending game end message: " + e.getMessage());
         }
@@ -121,7 +121,7 @@ public class Game {
     private void sendCorrectGuess(User player, String guess) {
         try {
             //this.validateToken(player);
-            player.getSocket().getOutputStream().write(("GCG:" + player.getToken() + ":" + guess + "\n").getBytes());
+            player.getSocket().getOutputStream().write(("GCG:" + player.getActiveToken() + ":" + guess + "\n").getBytes());
         } catch (IOException e) {
             System.out.println("Error sending correct guess message: " + e.getMessage());
         }
@@ -130,7 +130,7 @@ public class Game {
     private void sendWrongGuess(User player, String guess) {
         try {
             //this.validateToken(player);
-            player.getSocket().getOutputStream().write(("GWG:" + player.getToken() + ":" + guess + "\n").getBytes());
+            player.getSocket().getOutputStream().write(("GWG:" + player.getActiveToken() + ":" + guess + "\n").getBytes());
         } catch (IOException e) {
             System.out.println("Error sending wrong guess message: " + e.getMessage());
         }
