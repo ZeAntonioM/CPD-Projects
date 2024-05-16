@@ -18,7 +18,7 @@ public class Server {
     private final String host;
     private int port = 12345;
     private List<User> allUsers = readUsers();
-    private List<String> activeUsers = new ArrayList<>();
+    private final List<User> activeUsers = new ArrayList<>();
 
     public Server(int port, String host) {
         this.port = port;
@@ -86,6 +86,14 @@ public class Server {
         return users;
     }
 
+    private synchronized boolean validateRequest(String token) {
+        boolean valid = false;
+        for (User user : activeUsers) {
+            valid = valid || user.setActiveToken(token);
+        }
+        return valid;
+    }
+
     private class ClientHandler implements Runnable {
         @Override
         public void run() {
@@ -120,21 +128,22 @@ public class Server {
 
                 String[] clientMessage = readMessage(bufferedReader);
                 String messageKey = clientMessage[0];
+                StringBuilder token = new StringBuilder();
                 User client = null;
 
                 switch (messageKey) {
                     case "LGN":
-                        client = clientLogin(clientMessage[1], clientMessage[2], clientSocket);
+                        client = clientLogin(clientMessage[1], clientMessage[2], clientSocket, token);
                         if (client != null) {
-                            writeMessage(printWriter, "SUC:" + client.getToken());
+                            writeMessage(printWriter, "SUC:" + token);
                         } else {
                             writeMessage(printWriter, "ERR:Invalid credentials!");
                         }
                         break;
                     case "REG":
-                        client = clientRegister(clientMessage[1], clientMessage[2], clientSocket);
+                        client = clientRegister(clientMessage[1], clientMessage[2], clientSocket, token);
                         if (client != null) {
-                            writeMessage(printWriter, "SUC:" + client.getToken());
+                            writeMessage(printWriter, "SUC:" + token);
                         } else {
                             writeMessage(printWriter, "ERR:Username already exists!");
                         }
@@ -162,16 +171,19 @@ public class Server {
         }
 
         private boolean clientLogout(String token) {
-            for (String userToken: activeUsers) {
-                if (userToken.equals(token)) {
-                    activeUsers.remove(token);
-                    return true;
+            if (!validateRequest(token)) return false;
+            for (User user : activeUsers) {
+                for (String userToken : user.getTokens()) {
+                    if (userToken.equals(token)) {
+                        activeUsers.remove(token);
+                        return true;
+                    }
                 }
             }
             return false;
         }
 
-        private User clientRegister(String username, String password, Socket userSocket) {
+        private synchronized User clientRegister(String username, String password, Socket userSocket, StringBuilder retToken) {
             for (User user : allUsers) {
                 if (user.getUsername().equals(username)) {
                     return null;
@@ -189,22 +201,24 @@ public class Server {
                 return null;
             }
             allUsers.add(newUser);
-            activeUsers.add(token);
+            activeUsers.add(newUser);
 
+            retToken.append(token);
             return newUser;
         }
 
-        private User clientLogin(String username, String password, Socket userSocket) {
+        private synchronized User clientLogin(String username, String password, Socket userSocket, StringBuilder retToken) {
             for (User user : allUsers) {
                 if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
                     System.out.println("User " + username + " logged in!");
-                    String token = user.getToken().isEmpty() ? UUID.randomUUID().toString() : user.getToken();
+                    String token = UUID.randomUUID().toString();
 
-                    user.setToken(token);
-                    if (!activeUsers.contains(token)) activeUsers.add(token);
+                    user.addToken(token);
+                    if (!activeUsers.contains(user)) activeUsers.add(user);
 
                     user.setSocket(userSocket);
 
+                    retToken.append(token);
                     return user;
                 }
             }
