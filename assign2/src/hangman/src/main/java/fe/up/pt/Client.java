@@ -65,7 +65,7 @@ public class Client {
             String message;
 
             while (true) {
-                System.out.println("Login [1], Register [2] or Logout [3]?");
+                System.out.println("Login [1], Register [2], Play [3] or Logout [4]?");
                 message = reader.readLine();
                 String username;
                 String password;
@@ -92,6 +92,13 @@ public class Client {
                             System.out.println("You are not logged in!");
                             break;
                         }
+                        playGame(client);
+                        break;
+                    case "4":
+                        if (client.getSessionToken() == null){
+                            System.out.println("You are not logged in!");
+                            break;
+                        }
                         System.out.println(client.getSessionToken());
                         client.writeMessage("LGO:" + client.getSessionToken());
                         client.showMessageToClient(client.readMessage());
@@ -107,6 +114,38 @@ public class Client {
             System.err.println("Error: " + e.getMessage());
         } finally {
             System.out.println("Closing connection...");
+        }
+    }
+
+    private static void playGame(Client client) throws IOException{
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String message;
+        while (true) {
+            System.out.println("Join Simple[1], Join Ranked[2], Create Simple[3], Create Ranked[4] or Go Back [5]?");
+            message = reader.readLine();
+            switch (message) {
+                case "1":
+                    client.writeMessage("JSG:" + client.getSessionToken() + ":0");
+                    System.out.println(client.readMessage());
+                    break;
+                case "2":
+                    client.writeMessage("JRG:" + client.getSessionToken() + ":1");
+                    System.out.println(client.readMessage());
+                    break;
+                case "3":
+                    client.writeMessage("CSG:" + client.getSessionToken() + ":0");
+                    System.out.println(client.readMessage());
+                    break;
+                case "4":
+                    client.writeMessage("CRG:" + client.getSessionToken() + ":1");
+                    System.out.println(client.readMessage());
+                    break;
+                case "5":
+                    return;
+                default:
+                    System.out.println("Invalid option!");
+                    break;
+            }
         }
     }
 }

@@ -19,6 +19,8 @@ public class Server {
     private int port = 12345;
     private List<User> allUsers = readUsers();
     private List<String> activeUsers = new ArrayList<>();
+    private List<Game> activeGames = new ArrayList<>();
+    private int gameID = 0;
 
     public Server(int port, String host) {
         this.port = port;
@@ -86,6 +88,30 @@ public class Server {
         return users;
     }
 
+    private void runGame(List<User> players, boolean ranked, String theme, String word) {
+
+        Game game = new Game(gameID++, players, ranked, theme, word);
+
+        activeGames.add(game);
+
+        game.start();
+
+        while (game.isRunning()) {
+            for (int i = 0; i < game.getNumPlayers(); i++) {
+                User player = game.getPlayers().get(i);
+                ClientHandler connection = new ClientHandler();
+
+                game.sendAskForGuess(player);
+
+                connection.handleClientData(player.getSocket());
+            }
+        }
+
+        game.end();
+        activeGames.remove(game);
+
+    }
+
     private class ClientHandler implements Runnable {
         @Override
         public void run() {
@@ -146,6 +172,51 @@ public class Server {
                             writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
                         }
                         return false;
+                    // Stands for Join Simple Game
+                    case "JSG":
+                        if (client != null) {
+                            writeMessage(printWriter, "SUC:" + client.getToken());
+                        } else {
+                            writeMessage(printWriter, "ERR:Could not join game!");
+                        }
+                    // Stands for Join Ranked Game
+                    case "JRG":
+                        if (client != null) {
+                            writeMessage(printWriter, "SUC:" + client.getToken());
+                        } else {
+                            writeMessage(printWriter, "ERR:Could not join game!");
+                        }
+                    // Stands for Create Simple Game
+                    case "CSG":
+                        if (client != null) {
+                            writeMessage(printWriter, "SUC:" + client.getToken());
+                        } else {
+                            writeMessage(printWriter, "ERR: Could not create Game!");
+                        }
+                    // Stands for Create Ranked Game
+                    case "CRG":
+                        if (client != null) {
+                            writeMessage(printWriter, "SUC:" + client.getToken());
+                        } else {
+                            writeMessage(printWriter, "ERR: Could not create Game!");
+                        }
+
+                    // Stands for Game: Start
+                    case "GST":
+                        //user = clientGuess(clientMessage[1], clientMessage[2]);
+                        if (client != null) {
+                            writeMessage(printWriter, "SUC:" + client.getToken());
+                        } else {
+                            writeMessage(printWriter, "ERR:Cannot Start Game!");
+                        }
+                    // Stands for Game: Send Guess
+                    case "GSG":
+                        //user = clientGuess(clientMessage[1], clientMessage[2]);
+                        if (client != null) {
+                            writeMessage(printWriter, "SUC:" + client.getToken());
+                        } else {
+                            writeMessage(printWriter, "ERR:Cannot Send Guess!");
+                        }
                     default:
                         System.out.println("Unknown request received!: " + messageKey);
                         writeMessage(printWriter, "ERR:Unknown request!");
@@ -196,6 +267,7 @@ public class Server {
 
         private User clientLogin(String username, String password, Socket userSocket) {
             for (User user : allUsers) {
+                // TODO equals hashed password
                 if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
                     System.out.println("User " + username + " logged in!");
                     String token = user.getToken().isEmpty() ? UUID.randomUUID().toString() : user.getToken();
@@ -208,6 +280,17 @@ public class Server {
                     return user;
                 }
             }
+            return null;
+        }
+
+        private User clientGuess(String token, String guess) {
+            for (User user : allUsers) {
+                if (user.getToken().equals(token)) {
+                    return user;
+                }
+            }
+
+
             return null;
         }
 

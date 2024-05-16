@@ -7,19 +7,19 @@ import java.util.Scanner;
 import static java.util.Collections.shuffle;
 
 public class Game {
-    private List<Client> players;
+
+    private int gameID;
+    private List<User> players;
     private int numPlayers;
     private boolean ranked;
-
     private String theme;
     private String word;
-    boolean running;
+    private boolean running;
     private String guessedWord;
-
     private List<Integer> ranks;
+    public Game(int gameID, List<User> players, boolean ranked, String theme, String word) {
 
-    public Game(List<Client> players, boolean ranked, String theme, String word) {
-
+        this.gameID = gameID;
         this.numPlayers = players.size();
         this.players = players;
         shuffle(this.players);
@@ -29,48 +29,58 @@ public class Game {
         this.running = true;
         this.guessedWord = this.word.replaceAll("[a-zA-Z]", "_");
         this.ranks = new ArrayList<Integer>();
-        for (Client player : this.players) {
+        for (User player : this.players) {
             this.ranks.add(player.getRank());
         }
 
     }
 
     public void start() {
-        for (Client player : this.players) {
-            player.sendGameStart(this.theme, this.guessedWord);
+        for (User player : this.players) {
+            this.sendGameStart(player, this.theme, this.guessedWord);
         }
     }
 
     public void end() {
-        for (Client player : this.players) {
-            player.sendGameEnd(this.word);
+        for (User player : this.players) {
+            this.sendGameEnd(player, this.word);
         }
     }
 
-    public void sendGuess(String guess, int player) {
+    public void sendAskForGuess(User player) {
+        try {
+            //this.validateToken(player);
+            player.getSocket().getOutputStream().write(("GAG:" + player.getToken() + "\n").getBytes());
+        } catch (IOException e) {
+            System.out.println("Error sending ask for guess message: " + e.getMessage());
+        }
+    }
+
+    public void receiveGuess(String guess, int num_player) {
+        User player = this.players.get(num_player);
         if ((guess.length() > 1) && (guess.equals(word))) {
-            if (this.ranked) this.updateRank(player, 20);
+            if (this.ranked) this.updateRank(num_player, 20);
 
             this.guessedWord = this.word;
             this.running = false;
-            this.ranks.get(player).sendGameCorrectWordGuess();
+            this.sendCorrectGuess(player, guess);
 
         }
         else if (guess.length() > 1) {
-            if (this.ranked) this.updateRank(player, -10);
+            if (this.ranked) this.updateRank(num_player, -10);
 
-            this.ranks.get(player).sendGameWrongWordGuess();
+            this.sendWrongGuess(player, guess);
         }
         else if (this.checkLetter(guess)){
-            if (this.ranked) this.updateRank(player, 5);
-            
+            if (this.ranked) this.updateRank(num_player, 5);
+
             this.updateGuessedWord(guess);
-            this.ranks.get(player).sendGameCorrectLetterGuess();
+            this.sendCorrectGuess(player,guess);
         }
         else {
-            if (this.ranked) this.updateRank(player, -2);
+            if (this.ranked) this.updateRank(num_player, -2);
 
-            this.ranks.get(player).sendGameCorrectLetterGuess();
+            this.sendWrongGuess(player, guess);
         }
     }
 
@@ -88,6 +98,73 @@ public class Game {
                 this.guessedWord = this.guessedWord.substring(0, i) + letter + this.guessedWord.substring(i + 1);
             }
         }
+    }
+
+    private void sendGameStart(User player, String theme, String guessedWord) {
+        try {
+            //this.validateToken(player);
+            player.getSocket().getOutputStream().write(("GST:" + gameID + ":" + player.getToken() + ":" + theme + ":" + guessedWord + "\n").getBytes());
+        } catch (IOException e) {
+            System.out.println("Error sending game start message: " + e.getMessage());
+        }
+    }
+
+    private void sendGameEnd(User player, String word) {
+        try {
+            //this.validateToken(player);
+            player.getSocket().getOutputStream().write(("GEN:" + gameID + ":" + player.getToken() + ":" + word + ":" + "\n").getBytes());
+        } catch (IOException e) {
+            System.out.println("Error sending game end message: " + e.getMessage());
+        }
+    }
+
+    private void sendCorrectGuess(User player, String guess) {
+        try {
+            //this.validateToken(player);
+            player.getSocket().getOutputStream().write(("GCG:" + player.getToken() + ":" + guess + "\n").getBytes());
+        } catch (IOException e) {
+            System.out.println("Error sending correct guess message: " + e.getMessage());
+        }
+    }
+
+    private void sendWrongGuess(User player, String guess) {
+        try {
+            //this.validateToken(player);
+            player.getSocket().getOutputStream().write(("GWG:" + player.getToken() + ":" + guess + "\n").getBytes());
+        } catch (IOException e) {
+            System.out.println("Error sending wrong guess message: " + e.getMessage());
+        }
+    }
+
+
+
+
+    public List<User> getPlayers() {
+        return players;
+    }
+
+    public int getNumPlayers() {
+        return numPlayers;
+    }
+
+    public boolean isRanked() {
+        return ranked;
+    }
+
+    public String getWord() {
+        return word;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public String getGuessedWord() {
+        return guessedWord;
+    }
+
+    public List<Integer> getRanks() {
+        return ranks;
     }
 
 }
