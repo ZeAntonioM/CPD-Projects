@@ -45,7 +45,7 @@ public class Server {
             try {
                 clientQueue[queueTail] = clientSocket;
                 queueTail = (queueTail + 1) % clientQueue.length; // Wrap-around logic
-                new Thread(new ClientHandler()).start();
+                Thread.ofVirtual().start(new ClientHandler());
                 notEmpty.signal(); // Signal the waiting client handling thread
             } finally {
                 queueLock.unlock();
@@ -142,11 +142,10 @@ public class Server {
                     case "LGO":
                         if (clientLogout(clientMessage[1])){
                             writeMessage(printWriter, "SUC:Logged out successfully!");
-                            return false;
                         } else {
                             writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
                         }
-                        break;
+                        return false;
                     default:
                         System.out.println("Unknown request received!: " + messageKey);
                         writeMessage(printWriter, "ERR:Unknown request!");
@@ -199,9 +198,9 @@ public class Server {
             for (User user : allUsers) {
                 if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
                     System.out.println("User " + username + " logged in!");
-                    String token = user.getToken();
+                    String token = user.getToken().isEmpty() ? UUID.randomUUID().toString() : user.getToken();
 
-                    if (token.isEmpty()) user.setToken(UUID.randomUUID().toString());
+                    user.setToken(token);
                     if (!activeUsers.contains(token)) activeUsers.add(token);
 
                     user.setSocket(userSocket);

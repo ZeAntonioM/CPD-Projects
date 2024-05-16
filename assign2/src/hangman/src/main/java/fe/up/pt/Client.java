@@ -77,6 +77,7 @@ public class Client {
                         password = reader.readLine();
                         client.writeMessage("LGN:" + username + ":" + password);
                         client.showMessageToClient(client.readMessage());
+                        System.out.println(client.getSessionToken());
                         break;
                     case "2":
                         System.out.println("Enter username: ");
@@ -91,6 +92,7 @@ public class Client {
                             System.out.println("You are not logged in!");
                             break;
                         }
+                        System.out.println(client.getSessionToken());
                         client.writeMessage("LGO:" + client.getSessionToken());
                         client.showMessageToClient(client.readMessage());
                         client.getSocket().close();
