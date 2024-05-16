@@ -3,8 +3,7 @@ package fe.up.pt;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -17,9 +16,8 @@ public class Server {
     private int queueTail = 0;
     private final String host;
     private int port = 12345;
-    private List<User> allUsers = readUsers();
-    private List<String> activeUsers = new ArrayList<>();
-
+    private HashMap<String, User> allUsers = readUsers();
+    private final HashMap<String, User> activeUsers = new HashMap<>();
     public Server(int port, String host) {
         this.port = port;
         this.host = host;
@@ -62,8 +60,8 @@ public class Server {
         return bufferedReader.readLine().split(":");
     }
 
-    private List<User> readUsers() {
-        List<User> users = new ArrayList<>();
+    private HashMap<String, User> readUsers() {
+        HashMap<String, User> users = new HashMap<>();
         String line = "";
 
         try (BufferedReader br = new BufferedReader(new FileReader("src\\main\\java\\fe\\up\\pt\\users.csv"))) {
@@ -78,12 +76,20 @@ public class Server {
                 String username = data[0];
                 String password = data[1];
                 int rank = Integer.parseInt(data[2]);
-                users.add(new User(username, password, "", rank, null));
+                users.put(username, new User(username, password, "", rank, null));
             }
         } catch (IOException ignored) {
         }
 
         return users;
+    }
+
+    private synchronized boolean validateRequest(String token) {
+        boolean valid = false;
+        for (User user : activeUsers.values()) {
+            valid = valid || user.setActiveToken(token);
+        }
+        return valid;
     }
 
     private class ClientHandler implements Runnable {
@@ -120,21 +126,22 @@ public class Server {
 
                 String[] clientMessage = readMessage(bufferedReader);
                 String messageKey = clientMessage[0];
+                StringBuilder token = new StringBuilder();
                 User client = null;
 
                 switch (messageKey) {
                     case "LGN":
-                        client = clientLogin(clientMessage[1], clientMessage[2], clientSocket);
+                        client = clientLogin(clientMessage[1], clientMessage[2], clientSocket, token);
                         if (client != null) {
-                            writeMessage(printWriter, "SUC:" + client.getToken());
+                            writeMessage(printWriter, "SUC:" + token);
                         } else {
                             writeMessage(printWriter, "ERR:Invalid credentials!");
                         }
                         break;
                     case "REG":
-                        client = clientRegister(clientMessage[1], clientMessage[2], clientSocket);
+                        client = clientRegister(clientMessage[1], clientMessage[2], clientSocket, token);
                         if (client != null) {
-                            writeMessage(printWriter, "SUC:" + client.getToken());
+                            writeMessage(printWriter, "SUC:" + token);
                         } else {
                             writeMessage(printWriter, "ERR:Username already exists!");
                         }
@@ -162,21 +169,22 @@ public class Server {
         }
 
         private boolean clientLogout(String token) {
-            for (String userToken: activeUsers) {
-                if (userToken.equals(token)) {
-                    activeUsers.remove(token);
-                    return true;
+            if (!validateRequest(token)) return false;
+            for (User user : activeUsers.values()) {
+                for (String userToken : user.getTokens()) {
+                    if (userToken.equals(token)) {
+                        activeUsers.remove(token);
+                        return true;
+                    }
                 }
             }
             return false;
         }
 
-        private User clientRegister(String username, String password, Socket userSocket) {
-            for (User user : allUsers) {
-                if (user.getUsername().equals(username)) {
-                    return null;
-                }
-            }
+        private synchronized User clientRegister(String username, String password, Socket userSocket, StringBuilder retToken) {
+            User user = allUsers.get(username);
+            if (user != null) return null;
+
             String token = UUID.randomUUID().toString();
             User newUser = new User(username, password, token, 1000, userSocket);
             try {
@@ -188,26 +196,29 @@ public class Server {
             } catch (IOException ignored) {
                 return null;
             }
-            allUsers.add(newUser);
-            activeUsers.add(token);
+            allUsers.put(username, newUser);
+            activeUsers.put(username, newUser);
 
+            retToken.append(token);
             return newUser;
         }
 
-        private User clientLogin(String username, String password, Socket userSocket) {
-            for (User user : allUsers) {
-                if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+        private synchronized User clientLogin(String username, String password, Socket userSocket, StringBuilder retToken) {
+            User user = allUsers.get(username);
+                if (user != null && user.getPassword().equals(password)) {
                     System.out.println("User " + username + " logged in!");
-                    String token = user.getToken().isEmpty() ? UUID.randomUUID().toString() : user.getToken();
+                    String token = UUID.randomUUID().toString();
 
-                    user.setToken(token);
-                    if (!activeUsers.contains(token)) activeUsers.add(token);
+                    if (!user.addToken(token)) return null;
+
+                    activeUsers.putIfAbsent(username, user);
 
                     user.setSocket(userSocket);
 
+                    retToken.append(token);
                     return user;
                 }
-            }
+
             return null;
         }
 
