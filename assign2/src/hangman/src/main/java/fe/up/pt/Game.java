@@ -28,7 +28,6 @@ public class Game {
         this.word = word;
         this.running = true;
         this.guessedWord = this.word.replaceAll("[a-zA-Z]", "_");
-
         this.ranks = new ArrayList<Integer>();
         for (Client player : this.players) {
             this.ranks.add(player.getRank());

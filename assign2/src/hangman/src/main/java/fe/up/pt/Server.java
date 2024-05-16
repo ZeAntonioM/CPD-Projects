@@ -1,139 +1,69 @@
 package fe.up.pt;
 
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Server {
-    private final int port;
-    private List<Game> games;
-    private Dictionary<String, List<String>> wordList;
-    private List<String> themes = new ArrayList<>();
-    private List<Client> registeredUsers;
-    private List<String> loggedUsers = new ArrayList<>();
-    private ServerSocketChannel serverSocketChannel;
-    private static final int maxPlayers = 5;
+    private final ReentrantLock queueLock = new ReentrantLock();
+    private final Condition notEmpty = queueLock.newCondition();
+    private final Socket[] clientQueue = new Socket[10];
+    private int queueHead = 0;
+    private int queueTail = 0;
+    private final String host;
+    private int port = 12345;
+    private List<User> allUsers = readUsers();
+    private List<String> activeUsers = new ArrayList<>();
 
     public Server(int port, String host) {
         this.port = port;
-        this.wordList = readWordList();
-        this.registeredUsers = readUsers();
-        this.createGames(2,1);
-    }
-
-    private void createGames(int nTotalGames, int nRankedGames){
-        for (int i = 0; i < nTotalGames; i++){
-            Random rand = new Random();
-            String theme = this.themes.get(rand.nextInt(this.themes.size()));
-            String word = this.wordList.get(theme).get(rand.nextInt(this.wordList.get(theme).size()));
-            this.games.add(new Game(maxPlayers, new ArrayList<>(), i < nRankedGames, theme, word));
-        }
-
-    }
-
-    private void addPlayerToGame(String token, Game game){
-        game.addPlayer(token);
+        this.host = host;
     }
 
     public static void main(String[] args) throws IOException {
-        Server server = new Server(8000, "localhost");
+        Server server = new Server(12345, "localhost");
         server.start();
-        boolean run = true;
-
-        //TODO: seperate this loop on threads
-        while (run) {
-            SocketChannel client = server.serverSocketChannel.accept();
-            while (run) {
-                String message = server.readMessage(client);
-                switch (message.split(":")[0].trim()) {
-                    case "LGN":
-                        System.out.println("Login request received!");
-
-                        Client user = server.loginUser(message.split(":")[1], message.split(":")[2]);
-                        if (user != null) {
-                            server.sendMessage(client, "SUC:" + user.getToken());
-                        } else {
-                            server.sendMessage(client, "ERR");
-                        }
-
-                        break;
-                    case "REG":
-                        System.out.println("Register request received!");
-
-                        Client newUser = server.registerUser(message.split(":")[1], message.split(":")[2]);
-                        if (newUser != null) {
-                            server.sendMessage(client, "SUC:" + newUser.getToken());
-                        } else {
-                            server.sendMessage(client, "ERR");
-                        }
-
-                        break;
-                    case "OUT":
-                        System.out.println("Logout request received!");
-
-                        if (server.logoutUser(message.split(":")[1])) {
-                            server.sendMessage(client, "SUC");
-                        } else {
-                            server.sendMessage(client, "ERR");
-                        }
-
-                        if (server.loggedUsers.isEmpty()) run = false;
-                        System.out.println("Server shutting down!");
-                        break;
-                    default:
-                        System.out.println("Unknown request received!");
-                        break;
-                }
-
-            }
-        }
-        server.serverSocketChannel.close();
-    }
-
-    private Dictionary<String, List<String>> readWordList() {
-        Dictionary<String, List<String>> wordList = new Hashtable<>();
-        String line = "";
-
-        try (BufferedReader br = new BufferedReader(new FileReader("src\\main\\java\\fe\\up\\pt\\word_list.csv"))) {
-            boolean first = true;
-            while ((line = br.readLine()) != null) {
-                if (first) {
-                    first = false;
-                    continue;
-                }
-                // use comma as separator
-                String[] data = line.split(",");
-                String theme = data[0];
-                String word = data[1];
-                List<String> words = wordList.get(theme);
-
-                if (words == null) {
-                    this.themes.add(theme);
-                    words = new ArrayList<>();
-                    wordList.put(theme, words);
-                } else {
-                    words.add(word);
-                }
-
-            }
-        } catch (IOException ignored) {
-        }
-
-        return wordList;
     }
 
     public void start() throws IOException {
-        this.serverSocketChannel = ServerSocketChannel.open();
-        serverSocketChannel.bind(new InetSocketAddress(this.port));
-        System.out.println("Server started on port " + this.port);
+        ServerSocket serverSocket = new ServerSocket(this.port);
+
+        // Start the dedicated client handling thread
+
+        System.out.println("Server started on port " + this.port + "!");
+        while (true) {
+            // Wait for a new connection
+            Socket clientSocket = serverSocket.accept();
+
+            // Acquire lock and add client to queue
+            queueLock.lock();
+            try {
+                clientQueue[queueTail] = clientSocket;
+                queueTail = (queueTail + 1) % clientQueue.length; // Wrap-around logic
+                Thread.ofVirtual().start(new ClientHandler());
+                notEmpty.signal(); // Signal the waiting client handling thread
+            } finally {
+                queueLock.unlock();
+            }
+        }
     }
 
-    private List<Client> readUsers() {
-        List<Client> users = new ArrayList<>();
+    public void writeMessage(PrintWriter printWriter, String message) throws IOException {
+        printWriter.println(message);
+        printWriter.flush();
+    }
+
+    public String[] readMessage(BufferedReader bufferedReader) throws IOException {
+        return bufferedReader.readLine().split(":");
+    }
+
+    private List<User> readUsers() {
+        List<User> users = new ArrayList<>();
         String line = "";
 
         try (BufferedReader br = new BufferedReader(new FileReader("src\\main\\java\\fe\\up\\pt\\users.csv"))) {
@@ -148,7 +78,7 @@ public class Server {
                 String username = data[0];
                 String password = data[1];
                 int rank = Integer.parseInt(data[2]);
-                users.add(new Client(username, password, "", rank));
+                users.add(new User(username, password, "", rank, null));
             }
         } catch (IOException ignored) {
         }
@@ -156,66 +86,133 @@ public class Server {
         return users;
     }
 
-    private String readMessage(SocketChannel client) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        client.read(buffer);
-        buffer.flip();
-        ByteBuffer validBuffer = ByteBuffer.allocate(buffer.remaining());
-        validBuffer.put(buffer);
-        validBuffer.flip();
+    private class ClientHandler implements Runnable {
+        @Override
+        public void run() {
+            while (true) {
+                Socket clientSocket = null;
 
-        return new String(validBuffer.array(), StandardCharsets.UTF_8);
-    }
+                // Acquire lock and remove client from queue
+                queueLock.lock();
+                try {
+                    while (isEmpty()) {
+                        notEmpty.await(); // Wait if the queue is empty
+                    }
+                    clientSocket = clientQueue[queueHead];
+                    queueHead = (queueHead + 1) % clientQueue.length;
+                } catch (InterruptedException e) {
+                } finally {
+                    queueLock.unlock();
+                }
 
-    private void sendMessage(SocketChannel client, String message) throws IOException {
-        client.write(ByteBuffer.wrap(message.getBytes()));
-    }
+                while(handleClientData(clientSocket));
 
-    private Client loginUser(String username, String password) {
-        for (Client user : this.registeredUsers) {
-            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
-                System.out.println("User " + username + " logged in!");
-                String token = user.getToken();
-
-                if (token.isEmpty()) user.setToken(UUID.randomUUID().toString());
-                if (!this.loggedUsers.contains(token)) this.loggedUsers.add(token);
-
-                return user;
+                try {
+                    clientSocket.close();
+                } catch (IOException e) {
+                }
             }
         }
-        return null;
-    }
 
-    private Client registerUser(String username, String password) {
-        for (Client user : this.registeredUsers) {
-            if (user.getUsername().equals(username)) {
+        private boolean handleClientData(Socket clientSocket) {
+            try {BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                 PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
+
+                String[] clientMessage = readMessage(bufferedReader);
+                String messageKey = clientMessage[0];
+                User client = null;
+
+                switch (messageKey) {
+                    case "LGN":
+                        client = clientLogin(clientMessage[1], clientMessage[2], clientSocket);
+                        if (client != null) {
+                            writeMessage(printWriter, "SUC:" + client.getToken());
+                        } else {
+                            writeMessage(printWriter, "ERR:Invalid credentials!");
+                        }
+                        break;
+                    case "REG":
+                        client = clientRegister(clientMessage[1], clientMessage[2], clientSocket);
+                        if (client != null) {
+                            writeMessage(printWriter, "SUC:" + client.getToken());
+                        } else {
+                            writeMessage(printWriter, "ERR:Username already exists!");
+                        }
+                        break;
+                    case "LGO":
+                        if (clientLogout(clientMessage[1])){
+                            writeMessage(printWriter, "SUC:Logged out successfully!");
+                        } else {
+                            writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
+                        }
+                        return false;
+                    default:
+                        System.out.println("Unknown request received!: " + messageKey);
+                        writeMessage(printWriter, "ERR:Unknown request!");
+                        break;
+                }
+
+//                String outputMessage = "Hello from the server!";
+ //               outputStream.write(outputMessage.getBytes(), 0, outputMessage.getBytes().length);
+            } catch (IOException e) {
+                System.out.println("Error while handling client data: " + e.getMessage());
+                return false;
+            }
+            return true;
+        }
+
+        private boolean clientLogout(String token) {
+            for (String userToken: activeUsers) {
+                if (userToken.equals(token)) {
+                    activeUsers.remove(token);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private User clientRegister(String username, String password, Socket userSocket) {
+            for (User user : allUsers) {
+                if (user.getUsername().equals(username)) {
+                    return null;
+                }
+            }
+            String token = UUID.randomUUID().toString();
+            User newUser = new User(username, password, token, 1000, userSocket);
+            try {
+                // Open the file
+                FileWriter fileWriter = new FileWriter("src\\main\\java\\fe\\up\\pt\\users.csv", true);
+                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                bufferedWriter.write(newUser.getUsername() + "," + newUser.getPassword() + "," + newUser.getRank() + "\n");
+                bufferedWriter.close();
+            } catch (IOException ignored) {
                 return null;
             }
+            allUsers.add(newUser);
+            activeUsers.add(token);
+
+            return newUser;
         }
-        String token = UUID.randomUUID().toString();
-        Client newUser = new Client(username, password, token, 1000);
-        try {
-            // Open the file
-            FileWriter fileWriter = new FileWriter("src\\main\\java\\fe\\up\\pt\\users.csv", true);
-            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-            bufferedWriter.write(newUser.getUsername() + "," + newUser.getPassword() + "," + newUser.getRank() + "\n");
-            bufferedWriter.close();
-        } catch (IOException ignored) {
+
+        private User clientLogin(String username, String password, Socket userSocket) {
+            for (User user : allUsers) {
+                if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+                    System.out.println("User " + username + " logged in!");
+                    String token = user.getToken().isEmpty() ? UUID.randomUUID().toString() : user.getToken();
+
+                    user.setToken(token);
+                    if (!activeUsers.contains(token)) activeUsers.add(token);
+
+                    user.setSocket(userSocket);
+
+                    return user;
+                }
+            }
             return null;
         }
-        this.registeredUsers.add(newUser);
-        this.loggedUsers.add(token);
 
-        return newUser;
-    }
-
-    private boolean logoutUser(String token) {
-        for (String loggedToken : this.loggedUsers) {
-            if (loggedToken.equals(token)) {
-                this.loggedUsers.remove(token);
-                return true;
-            }
+        private boolean isEmpty() {
+            return queueHead == queueTail;
         }
-        return false;
     }
 }
