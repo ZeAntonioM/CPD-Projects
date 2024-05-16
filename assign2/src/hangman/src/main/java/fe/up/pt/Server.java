@@ -69,7 +69,7 @@ public class Server {
         HashMap<String, User> users = new HashMap<>();
         String line = "";
 
-        try (BufferedReader br = new BufferedReader(new FileReader("src\\main\\java\\fe\\up\\pt\\users.csv"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("src"+File.separator+"main"+File.separator+"java"+File.separator+"fe"+File.separator+"up"+File.separator+"pt"+File.separator+"users.csv"))) {
             boolean first = true;
             while ((line = br.readLine()) != null) {
                 if (first) {
@@ -260,7 +260,7 @@ public class Server {
             User newUser = new User(username, password, token, 1000, userSocket);
             try {
                 // Open the file
-                FileWriter fileWriter = new FileWriter("src\\main\\java\\fe\\up\\pt\\users.csv", true);
+                FileWriter fileWriter = new FileWriter("src"+File.separator+"main"+File.separator+"java"+File.separator+"fe"+File.separator+"up"+File.separator+"pt"+File.separator+"users.csv", true);
                 BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
                 bufferedWriter.write(newUser.getUsername() + "," + newUser.getPassword() + "," + newUser.getRank() + "\n");
                 bufferedWriter.close();
