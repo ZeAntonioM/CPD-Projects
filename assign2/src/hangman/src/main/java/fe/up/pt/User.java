@@ -50,7 +50,7 @@ public class User {
         return false;
     }
 
-    public boolean setActiveToken (String token){
+    public synchronized boolean setActiveToken (String token){
         boolean ret = false;
         String[] newTokens = Arrays.copyOf(this.tokens, this.tokens.length);
         for (int i = 0; i < newTokens.length; i++) {
