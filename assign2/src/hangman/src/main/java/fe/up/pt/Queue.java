@@ -1,6 +1,7 @@
 package fe.up.pt;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -9,7 +10,7 @@ public class Queue<T> {
     public int head, tail;
     private ReentrantLock lock = new ReentrantLock();
     private Condition notEmpty = lock.newCondition();
-    private ArrayList<T> queue;
+    protected ArrayList<T> queue;
 
     public Queue() {
         this.head = this.tail = -1;

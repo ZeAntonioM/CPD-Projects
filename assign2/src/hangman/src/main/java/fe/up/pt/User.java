@@ -1,6 +1,7 @@
 package fe.up.pt;
 
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -61,9 +62,10 @@ public class User {
             for (int i = 0; i < newTokens.length; i++) {
                 if (newTokens[i] != null && newTokens[i].equals(token)) {
                     newTokens[0] = token;
+                    if (i != 0) newTokens[i] = null;
                     ret = true;
                 }
-                newTokens[i] = null;
+                else newTokens[i] = null;
             }
             if (ret) {
                 this.tokens = newTokens;

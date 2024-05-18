@@ -15,6 +15,7 @@ public class Server {
     private int port = 12345;
     private HashMap<String, User> allUsers = readUsers();
     private final HashMap<String, User> activeUsers = new HashMap<>();
+    private List<UserQueue> userQueues = new ArrayList<>();
     public Server(int port, String host) {
         this.port = port;
         this.host = host;
@@ -23,7 +24,6 @@ public class Server {
     public static void main(String[] args) throws IOException {
         Server server = new Server(12345, "localhost");
         server.start();
-
     }
 
     public void start() throws IOException {
@@ -67,7 +67,7 @@ public class Server {
                 String username = data[0];
                 String password = data[1];
                 int rank = Integer.parseInt(data[2]);
-                users.put(username, new User(username, password, "", rank, null));
+                users.put(username, new User(username, password, null, rank, null));
             }
         } catch (IOException ignored) {
         }
@@ -125,7 +125,7 @@ public class Server {
             accountLock.lock();
             for (User user : activeUsers.values()) {
                 for (String userToken : user.getTokens()) {
-                    if (userToken.equals(token)) {
+                    if (userToken != null && userToken.equals(token)) {
                         return user;
                     }
                 }
@@ -134,6 +134,26 @@ public class Server {
         } finally {
             accountLock.unlock();
         }
+    }
+
+    private void sortUserQueues(List<UserQueue> userQueues, int num) {
+        userQueues.sort(Comparator.comparingInt(o -> Math.abs(o.getRank() - num)));
+    }
+
+    private void createQueue(User user, boolean ranked) {
+        UserQueue userQueue = new UserQueue(ranked, user.getRank());
+        userQueue.enqueue(user);
+        userQueues.add(userQueue);
+        userQueue.start();
+    }
+
+    private boolean joinQueue(User user, UserQueue queue) {
+        if (queue.ended) return false;
+        queue.enqueue(user);
+        queue.setMeanRank();
+        System.out.println("User " + user.getUsername() + " joined queue!");
+        System.out.println("Queue: " + queue.queue.toString());
+        return true;
     }
 
     private class ClientHandler implements Runnable {
@@ -145,15 +165,13 @@ public class Server {
                     continue;
                 }
 
-                // Handle client data
-                if (!handleClientData(clientSocket)) {
-                    try {
-                        clientSocket.close();
-                    } catch (IOException e) {
-                        System.out.println("Error while closing client socket: " + e.getMessage());
-                    }
-                }
+                while (handleClientData(clientSocket));
 
+                try {
+                    clientSocket.close();
+                } catch (IOException e) {
+                    System.out.println("Error while closing client socket: " + e.getMessage());
+                }
             }
         }
 
@@ -165,6 +183,7 @@ public class Server {
                 String messageKey = clientMessage[0];
                 StringBuilder token = new StringBuilder();
                 User client = null;
+                System.out.println("Received: " + Arrays.toString(clientMessage));
 
                 switch (messageKey) {
                     case "LGN":
@@ -192,14 +211,22 @@ public class Server {
                         }
                         break;
                     case "GAM":
-                        if (!validateRequest(clientMessage[1])) {
+                        if (!validateRequest(clientMessage[3])) {
                             writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
                             break;
                         }
 
-                        User user = getUserFromToken(clientMessage[1]);
+                        User user = getUserFromToken(clientMessage[3]);
+                        boolean result;
 
-                        writeMessage(printWriter, "SUC");
+                        if (clientMessage[1].equals("create")) {
+                            System.out.println("Creating game!");
+                            createQueue(user, clientMessage[2].equals("rank"));
+                            System.out.println("Game created!");
+                            result = true;
+                        } else result = clientSearchGame(user, clientMessage[2].equals("rank"), 50);
+
+                        writeMessage(printWriter, result ? "SUC" : "ERR:No games found!");
                         break;
                     default:
                         System.out.println("Unknown request received!: " + messageKey);
@@ -289,5 +316,45 @@ public class Server {
                 accountLock.unlock();
             }
         }
+
+    private boolean clientSearchGame(User user, boolean ranked, int range) {
+        if (ranked) {
+            long endTime = System.currentTimeMillis() + 120000; //two minutes
+            long interval = System.currentTimeMillis() + 10000; //ten seconds
+
+            while (System.currentTimeMillis() < endTime) {
+                var copyOfUserQueues = new ArrayList<>(userQueues);
+                sortUserQueues(copyOfUserQueues, user.getRank());
+                for (UserQueue userQueue : copyOfUserQueues) {
+                    int difference = Math.abs(userQueue.getRank() - user.getRank());
+                    if (difference > range) break;
+
+                    if (userQueue.isRanked()) {
+                        return joinQueue(user, userQueue);
+                    }
+
+                }
+
+                if (System.currentTimeMillis() > interval){
+                    range += 50;
+                    interval = System.currentTimeMillis() + 10000;
+                    System.out.println("Range: " + range);
+                }
+
+                copyOfUserQueues = null;
+            }
+        } else {
+            long endTime = System.currentTimeMillis() + 120000; //two minutes
+
+            while (System.currentTimeMillis() < endTime) {
+                for (UserQueue userQueue : userQueues) {
+                    if (!userQueue.isRanked()) {
+                        return joinQueue(user, userQueue);
+                    }
+                }
+            }
+        }
+        return false;
+    }
     }
 }

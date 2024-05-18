@@ -40,6 +40,7 @@ public class Client {
 
         String token = getSessionToken() != null ? ":" + getSessionToken() : "";
         printWriter.println(message + token);
+        System.out.println("Sent: " + message + token);
         printWriter.flush();
     }
 
@@ -153,8 +154,9 @@ public class Client {
             String response = message.equals("1") ? (isNewGame ? "GAM:create:rank" : "GAM:join:rank")
                     : message.equals("2") ? (isNewGame ? "GAM:create:normal" : "GAM:join:normal")
                     : message.equals("3") ? null : "Invalid option!";
+            System.out.println(response);
             if (response == null) return;
-            else if (response .equals("Invalid option!")) System.out.println(response);
+            else if (response.equals("Invalid option!")) System.out.println(response);
             else {
                 writeMessage(response);
                 showMessageToClient(readMessage());
