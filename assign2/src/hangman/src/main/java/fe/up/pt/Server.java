@@ -186,8 +186,10 @@ public class Server {
         }
 
         private boolean handleClientData(Socket clientSocket) {
-            try {BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            try {
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
+
 
                 String[] clientMessage = readMessage(bufferedReader);
                 String messageKey = clientMessage[0];
@@ -215,14 +217,12 @@ public class Server {
                         writeMessage(printWriter, "SUC");
                         return false;
                     case "LGO":
-                        if (clientLogout(clientMessage[1])){
+                        if (clientLogout(clientMessage[1])) {
                             writeMessage(printWriter, "SUC");
-                            return false;
                         } else {
                             writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
                         }
                         break;
-
                     case "GAM":
                         System.out.println(clientMessage[1] + " of type " + clientMessage[2] + " for token " + clientMessage[3]);
                         writeMessage(printWriter, "SUC");

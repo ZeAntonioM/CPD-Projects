@@ -1,9 +1,9 @@
 package fe.up.pt;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import static java.util.Collections.shuffle;
 
 public class Game {
@@ -33,6 +33,7 @@ public class Game {
             this.ranks.add(player.getRank());
         }
 
+
     }
 
     public void start() {
@@ -50,6 +51,7 @@ public class Game {
     public void sendAskForGuess(User player) {
         try {
             //this.validateToken(player);
+            PrintWriter printWriter = new PrintWriter(player.getSocket().getOutputStream(), true);
             player.getSocket().getOutputStream().write(("GAG:" + player.getActiveToken() + "\n").getBytes());
         } catch (IOException e) {
             System.out.println("Error sending ask for guess message: " + e.getMessage());

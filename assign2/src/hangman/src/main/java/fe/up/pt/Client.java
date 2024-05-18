@@ -34,7 +34,7 @@ public class Client {
 
     private void writeMessage(String message) throws IOException {
         String messageKey = message.split(":")[0];
-        if (messageKey.equals("LGN") || messageKey.equals("REG")){
+        if (messageKey.equals("LGN") || messageKey.equals("REG") || messageKey.equals("EXT")){
             this.setSessionToken(null);
         }
 
@@ -56,7 +56,7 @@ public class Client {
             System.out.println("Success!\n");
             this.setSessionToken(data[1]);
             try {
-                mainMenu();
+                mainMenu(this);
             } catch (IOException e) {
                 System.out.println("Error: " + e.getMessage());
             }
@@ -116,22 +116,24 @@ public class Client {
     }
 
 
-    public void mainMenu() throws IOException{
+    public void mainMenu(Client client) throws IOException{
         printWriter = new PrintWriter(socket.getOutputStream(), true);
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String message;
 
         while (true) {
-            System.out.println("Start a new Game [1], Join a Game [2] or Exit [3]?");
+            System.out.println("Start a new Game [1], Join a Game [2] or Log Out [3]?");
             message = reader.readLine();
             switch (message) {
                 case "1":
-                    gameMenu(true);
+                    gameMenu(true, client);
                     break;
                 case "2":
-                    gameMenu(false);
+                    gameMenu(false, client);
                     break;
                 case "3":
+                    client.writeMessage("LGO");
+                    client.showMessageToClient(client.readMessage());
                     return;
                 default:
                     System.out.println("Invalid option!");
@@ -141,7 +143,7 @@ public class Client {
     }
 
 
-    public void gameMenu(boolean isNewGame) throws IOException {
+    public void gameMenu(boolean isNewGame, Client client) throws IOException {
         printWriter = new PrintWriter(socket.getOutputStream(), true);
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String message;
@@ -154,8 +156,8 @@ public class Client {
             if (response == null) return;
             else if (response .equals("Invalid option!")) System.out.println(response);
             else {
-                writeMessage(response);
-                showMessageToClient(readMessage());
+                client.writeMessage(response);
+                client.showMessageToClient(readMessage());
             }
         }
     }
