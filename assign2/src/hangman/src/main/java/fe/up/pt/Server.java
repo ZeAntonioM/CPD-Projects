@@ -1,21 +1,16 @@
 package fe.up.pt;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import org.mindrot.jbcrypt.BCrypt;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 public class Server {
-    private final ReentrantLock queueLock = new ReentrantLock();
-    private final Condition notEmpty = queueLock.newCondition();
-    private final Socket[] clientQueue = new Socket[10];
-    private int queueHead = 0;
-    private int queueTail = 0;
+    private final Queue<Socket> clientQueue = new Queue<>();
+    private final ReentrantLock accountLock = new ReentrantLock();
     private final String host;
     private int port = 12345;
     private HashMap<String, User> allUsers = readUsers();
@@ -42,15 +37,8 @@ public class Server {
             Socket clientSocket = serverSocket.accept();
 
             // Acquire lock and add client to queue
-            queueLock.lock();
-            try {
-                clientQueue[queueTail] = clientSocket;
-                queueTail = (queueTail + 1) % clientQueue.length; // Wrap-around logic
-                Thread.ofVirtual().start(new ClientHandler());
-                notEmpty.signal(); // Signal the waiting client handling thread
-            } finally {
-                queueLock.unlock();
-            }
+            clientQueue.enqueue(clientSocket);
+            Thread.ofVirtual().start(new ClientHandler());
         }
     }
 
@@ -119,39 +107,53 @@ public class Server {
         return wordList;
     }
 
-    private synchronized boolean validateRequest(String token) {
-        boolean valid = false;
-        for (User user : activeUsers.values()) {
-            valid = valid || user.setActiveToken(token);
+    private boolean validateRequest(String token) {
+        try {
+            accountLock.lock();
+            boolean valid = false;
+            for (User user : activeUsers.values()) {
+                valid = valid || user.setActiveToken(token);
+            }
+            return valid;
+        } finally {
+            accountLock.unlock();
         }
-        return valid;
+    }
+
+    private User getUserFromToken(String token) {
+        try {
+            accountLock.lock();
+            for (User user : activeUsers.values()) {
+                for (String userToken : user.getTokens()) {
+                    if (userToken.equals(token)) {
+                        return user;
+                    }
+                }
+            }
+            return null;
+        } finally {
+            accountLock.unlock();
+        }
     }
 
     private class ClientHandler implements Runnable {
         @Override
         public void run() {
             while (true) {
-                Socket clientSocket = null;
+                Socket clientSocket = clientQueue.dequeue();
+                if (clientSocket == null) {
+                    continue;
+                }
 
-                // Acquire lock and remove client from queue
-                queueLock.lock();
-                try {
-                    while (isEmpty()) {
-                        notEmpty.await(); // Wait if the queue is empty
+                // Handle client data
+                if (!handleClientData(clientSocket)) {
+                    try {
+                        clientSocket.close();
+                    } catch (IOException e) {
+                        System.out.println("Error while closing client socket: " + e.getMessage());
                     }
-                    clientSocket = clientQueue[queueHead];
-                    queueHead = (queueHead + 1) % clientQueue.length;
-                } catch (InterruptedException e) {
-                } finally {
-                    queueLock.unlock();
                 }
 
-                while(handleClientData(clientSocket));
-
-                try {
-                    clientSocket.close();
-                } catch (IOException e) {
-                }
             }
         }
 
@@ -190,7 +192,13 @@ public class Server {
                         }
                         break;
                     case "GAM":
-                        System.out.println(clientMessage[1] + " of type " + clientMessage[2] + " for token " + clientMessage[3]);
+                        if (!validateRequest(clientMessage[1])) {
+                            writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
+                            break;
+                        }
+
+                        User user = getUserFromToken(clientMessage[1]);
+
                         writeMessage(printWriter, "SUC");
                         break;
                     default:
@@ -208,67 +216,78 @@ public class Server {
 
         private boolean clientLogout(String token) {
             if (!validateRequest(token)) return false;
-            for (User user : activeUsers.values()) {
-                for (String userToken : user.getTokens()) {
-                    if (userToken.equals(token)) {
-                        activeUsers.remove(token);
-                        System.out.println("User " + user.getUsername() + " logged out!");
-                        return true;
+            try {
+                accountLock.lock();
+                for (User user : activeUsers.values()) {
+                    for (String userToken : user.getTokens()) {
+                        if (userToken.equals(token)) {
+                            activeUsers.remove(token);
+                            System.out.println("User " + user.getUsername() + " logged out!");
+                            return true;
+                        }
                     }
                 }
+                return false;
+            } finally {
+                accountLock.unlock();
             }
-            return false;
         }
 
-        private synchronized User clientRegister(String username, String password, Socket userSocket, StringBuilder retToken) {
-            User user = allUsers.get(username);
-            if (user != null) return null;
-
-            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-
-            String token = UUID.randomUUID().toString();
-            User newUser = new User(username, hashedPassword, token, 1000, userSocket);
-            newUser.addToken(token);
+        private User clientRegister(String username, String password, Socket userSocket, StringBuilder retToken) {
             try {
+                accountLock.lock();
+
+                User user = allUsers.get(username);
+                if (user != null) return null;
+
+                String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+                String token = UUID.randomUUID().toString();
+                User newUser = new User(username, hashedPassword, token, 1000, userSocket);
+                newUser.addToken(token);
                 // Open the file
                 FileWriter fileWriter = new FileWriter("src\\main\\java\\fe\\up\\pt\\users.csv", true);
                 BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
                 bufferedWriter.write(newUser.getUsername() + "," + newUser.getPassword() + "," + newUser.getRank() + "\n");
                 bufferedWriter.close();
-            } catch (IOException ignored) {
-                return null;
-            }
-            allUsers.put(username, newUser);
-            activeUsers.put(username, newUser);
 
-            retToken.append(token);
-            System.out.println("User " + username + " registered!");
-            return newUser;
-        }
 
-        private synchronized User clientLogin(String username, String password, Socket userSocket, StringBuilder retToken) {
-            User user = allUsers.get(username);
-            if (user != null && BCrypt.checkpw(password, user.getPassword())) {
-                System.out.println("User " + username + " logged in!");
-                String token = UUID.randomUUID().toString();
-
-                if (!user.addToken(token)) return null;
-
-                activeUsers.putIfAbsent(username, user);
-
-                user.setSocket(userSocket);
+                allUsers.put(username, newUser);
+                activeUsers.put(username, newUser);
 
                 retToken.append(token);
-
-                return user;
+                System.out.println("User " + username + " registered!");
+                return newUser;
+            } catch (IOException e) {
+                return null;
+            } finally {
+                accountLock.unlock();
             }
-
-            return null;
         }
 
-        private boolean isEmpty() {
-            return queueHead == queueTail;
+        private User clientLogin(String username, String password, Socket userSocket, StringBuilder retToken) {
+            try {
+                accountLock.lock();
+                User user = allUsers.get(username);
+                if (user != null && BCrypt.checkpw(password, user.getPassword())) {
+                    System.out.println("User " + username + " logged in!");
+                    String token = UUID.randomUUID().toString();
+
+                    if (!user.addToken(token)) return null;
+
+                    activeUsers.putIfAbsent(username, user);
+
+                    user.setSocket(userSocket);
+
+                    retToken.append(token);
+
+                    return user;
+                }
+
+                return null;
+            } finally {
+                accountLock.unlock();
+            }
         }
     }
-
 }
