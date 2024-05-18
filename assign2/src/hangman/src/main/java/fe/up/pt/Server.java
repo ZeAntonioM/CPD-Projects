@@ -3,10 +3,12 @@ package fe.up.pt;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import org.mindrot.jbcrypt.BCrypt;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class Server {
     private final ReentrantLock queueLock = new ReentrantLock();
@@ -26,6 +28,7 @@ public class Server {
     public static void main(String[] args) throws IOException {
         Server server = new Server(12345, "localhost");
         server.start();
+
     }
 
     public void start() throws IOException {
@@ -84,6 +87,38 @@ public class Server {
         return users;
     }
 
+    private Dictionary<String, List<String>> readWordList(){
+        Dictionary<String, List<String>> wordList = new Hashtable<>();
+        String line = "";
+
+        try (BufferedReader br = new BufferedReader(new FileReader("src\\main\\java\\fe\\up\\pt\\word_list.csv"))) {
+            boolean first = true;
+            while ((line = br.readLine()) != null) {
+                if (first){
+                    first = false;
+                    continue;
+                }
+                // use comma as separator
+                String[] data = line.split(",");
+                String theme = data[0];
+                String word = data[1];
+                List<String> words = wordList.get(theme);
+
+                if (words == null) {
+                    words = new ArrayList<>();
+                    wordList.put(theme, words);
+                }
+                else {
+                    words.add(word);
+                }
+
+            }
+        } catch (IOException ignored) {
+        }
+
+        return wordList;
+    }
+
     private synchronized boolean validateRequest(String token) {
         boolean valid = false;
         for (User user : activeUsers.values()) {
@@ -122,7 +157,7 @@ public class Server {
 
         private boolean handleClientData(Socket clientSocket) {
             try {BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                 PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
+                PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
 
                 String[] clientMessage = readMessage(bufferedReader);
                 String messageKey = clientMessage[0];
@@ -152,6 +187,10 @@ public class Server {
                         } else {
                             writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
                         }
+                        break;
+                    case "GAM":
+                        System.out.println("Game started!");
+                        writeMessage(printWriter, "SUC:Game started!");
                         return false;
                     default:
                         System.out.println("Unknown request received!: " + messageKey);
@@ -160,7 +199,7 @@ public class Server {
                 }
 
 //                String outputMessage = "Hello from the server!";
- //               outputStream.write(outputMessage.getBytes(), 0, outputMessage.getBytes().length);
+                //               outputStream.write(outputMessage.getBytes(), 0, outputMessage.getBytes().length);
             } catch (IOException e) {
                 System.out.println("Error while handling client data: " + e.getMessage());
                 return false;
@@ -185,8 +224,10 @@ public class Server {
             User user = allUsers.get(username);
             if (user != null) return null;
 
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
             String token = UUID.randomUUID().toString();
-            User newUser = new User(username, password, token, 1000, userSocket);
+            User newUser = new User(username, hashedPassword, token, 1000, userSocket);
             try {
                 // Open the file
                 FileWriter fileWriter = new FileWriter("src\\main\\java\\fe\\up\\pt\\users.csv", true);
@@ -205,19 +246,20 @@ public class Server {
 
         private synchronized User clientLogin(String username, String password, Socket userSocket, StringBuilder retToken) {
             User user = allUsers.get(username);
-                if (user != null && user.getPassword().equals(password)) {
-                    System.out.println("User " + username + " logged in!");
-                    String token = UUID.randomUUID().toString();
+            if (user != null && BCrypt.checkpw(password, user.getPassword())) {
+                System.out.println("User " + username + " logged in!");
+                String token = UUID.randomUUID().toString();
 
-                    if (!user.addToken(token)) return null;
+                if (!user.addToken(token)) return null;
 
-                    activeUsers.putIfAbsent(username, user);
+                activeUsers.putIfAbsent(username, user);
 
-                    user.setSocket(userSocket);
+                user.setSocket(userSocket);
 
-                    retToken.append(token);
-                    return user;
-                }
+                retToken.append(token);
+
+                return user;
+            }
 
             return null;
         }
@@ -226,4 +268,5 @@ public class Server {
             return queueHead == queueTail;
         }
     }
+
 }

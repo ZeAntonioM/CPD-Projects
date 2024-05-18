@@ -46,9 +46,14 @@ public class Client {
         if (data[0].equals("ERR")){
             System.out.println("Error: " + data[1] + "\n");
         }
-        else if (data[0].equals("SUC") && data.length > 1){
+        else if (data[0].equals("SUC") && data.length > 1) {
             System.out.println("Success!\n");
             this.setSessionToken(data[1]);
+            try {
+                mainMenu();
+            } catch (IOException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
         }
     }
 
@@ -107,6 +112,74 @@ public class Client {
             System.err.println("Error: " + e.getMessage());
         } finally {
             System.out.println("Closing connection...");
+        }
+    }
+
+    public void mainMenu() throws IOException{
+        printWriter = new PrintWriter(socket.getOutputStream(), true);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String message;
+
+        while (true) {
+            System.out.println("Start a new Game [1], Join a Game [2] or Logout [3]?");
+            message = reader.readLine();
+            switch (message) {
+                case "1":
+                    gameMenu(true);
+                    break;
+                case "2":
+                    gameMenu(false);
+                    break;
+                case "3":
+                    if (getSessionToken() == null){
+                        System.out.println("You are not logged in!");
+                        break;
+                    }
+                    System.out.println(getSessionToken());
+                    writeMessage("LGO:" + getSessionToken());
+                    showMessageToClient(readMessage());
+                    getSocket().close();
+                    return;
+                default:
+                    System.out.println("Invalid option!");
+                    break;
+            }
+        }
+    }
+
+    public void gameMenu(boolean isNewGame) throws IOException {
+        printWriter = new PrintWriter(socket.getOutputStream(), true);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String message;
+        while (true) {
+            System.out.println("Ranked [1], Normal [2] or Back [3]?");
+            message = reader.readLine();
+            switch (message) {
+                case "1":
+                    if (isNewGame){
+                        // Handle new game start
+                        writeMessage("GAM"); // Send message to server
+                    } else {
+                        // Handle game join
+                        writeMessage("GAM"); // Send message to server
+                    }
+                    break;
+                case "2":
+                    if (isNewGame){
+                        // Handle new game start
+                        writeMessage("GAM"); // Send message to server
+                    } else {
+                        // Handle game join
+                        writeMessage("GAM"); // Send message to server
+                    }
+                    break;
+                case "3":
+                    mainMenu();
+                    return;
+                default:
+                    System.out.println("Invalid option!");
+                    break;
+            }
         }
     }
 }

@@ -70,4 +70,5 @@ public class User {
     public void setSocket(Socket userSocket) {
         this.socket = userSocket;
     }
+
 }
