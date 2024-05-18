@@ -183,14 +183,15 @@ public class Server {
                         break;
                     case "LGO":
                         if (clientLogout(clientMessage[1])){
-                            writeMessage(printWriter, "SUC:Logged out successfully!");
+                            writeMessage(printWriter, "SUC");
+                            return false;
                         } else {
                             writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
                         }
                         break;
                     case "GAM":
                         System.out.println("Game started!");
-                        writeMessage(printWriter, "SUC:Game started!");
+                        writeMessage(printWriter, "SUC");
                         return false;
                     default:
                         System.out.println("Unknown request received!: " + messageKey);
@@ -198,8 +199,6 @@ public class Server {
                         break;
                 }
 
-//                String outputMessage = "Hello from the server!";
-                //               outputStream.write(outputMessage.getBytes(), 0, outputMessage.getBytes().length);
             } catch (IOException e) {
                 System.out.println("Error while handling client data: " + e.getMessage());
                 return false;
@@ -213,6 +212,7 @@ public class Server {
                 for (String userToken : user.getTokens()) {
                     if (userToken.equals(token)) {
                         activeUsers.remove(token);
+                        System.out.println("User " + user.getUsername() + " logged out!");
                         return true;
                     }
                 }
@@ -228,6 +228,7 @@ public class Server {
 
             String token = UUID.randomUUID().toString();
             User newUser = new User(username, hashedPassword, token, 1000, userSocket);
+            newUser.addToken(token);
             try {
                 // Open the file
                 FileWriter fileWriter = new FileWriter("src\\main\\java\\fe\\up\\pt\\users.csv", true);
@@ -241,6 +242,7 @@ public class Server {
             activeUsers.put(username, newUser);
 
             retToken.append(token);
+            System.out.println("User " + username + " registered!");
             return newUser;
         }
 

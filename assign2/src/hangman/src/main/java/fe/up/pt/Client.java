@@ -121,7 +121,7 @@ public class Client {
         String message;
 
         while (true) {
-            System.out.println("Start a new Game [1], Join a Game [2] or Logout [3]?");
+            System.out.println("Start a new Game [1], Join a Game [2] or Exit [3]?");
             message = reader.readLine();
             switch (message) {
                 case "1":
@@ -131,14 +131,6 @@ public class Client {
                     gameMenu(false);
                     break;
                 case "3":
-                    if (getSessionToken() == null){
-                        System.out.println("You are not logged in!");
-                        break;
-                    }
-                    System.out.println(getSessionToken());
-                    writeMessage("LGO:" + getSessionToken());
-                    showMessageToClient(readMessage());
-                    getSocket().close();
                     return;
                 default:
                     System.out.println("Invalid option!");

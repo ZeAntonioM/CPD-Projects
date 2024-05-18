@@ -56,7 +56,6 @@ public class User {
         for (int i = 0; i < newTokens.length; i++) {
             if (newTokens[i] != null && newTokens[i].equals(token)) {
                 newTokens[0] = token;
-                System.out.println("Token " + token + " is now active!");
                 ret = true;
             }
             newTokens[i] = null;
