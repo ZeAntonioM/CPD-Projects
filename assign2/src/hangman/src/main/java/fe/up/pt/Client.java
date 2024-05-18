@@ -33,7 +33,13 @@ public class Client {
     }
 
     private void writeMessage(String message) throws IOException {
-        printWriter.println(message);
+        String messageKey = message.split(":")[0];
+        if (messageKey.equals("LGN") || messageKey.equals("REG")){
+            this.setSessionToken(null);
+        }
+
+        String token = getSessionToken() != null ? ":" + getSessionToken() : "";
+        printWriter.println(message + token);
         printWriter.flush();
     }
 
@@ -46,9 +52,14 @@ public class Client {
         if (data[0].equals("ERR")){
             System.out.println("Error: " + data[1] + "\n");
         }
-        else if (data[0].equals("SUC") && data.length > 1){
+        else if (data[0].equals("SUC") && data.length > 1) {
             System.out.println("Success!\n");
             this.setSessionToken(data[1]);
+            try {
+                mainMenu();
+            } catch (IOException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
         }
     }
 
@@ -65,7 +76,7 @@ public class Client {
             String message;
 
             while (true) {
-                System.out.println("Login [1], Register [2], Play [3] or Logout [4]?");
+                System.out.println("Login [1], Register [2] or Exit [3]?");
                 message = reader.readLine();
                 String username;
                 String password;
@@ -77,7 +88,6 @@ public class Client {
                         password = reader.readLine();
                         client.writeMessage("LGN:" + username + ":" + password);
                         client.showMessageToClient(client.readMessage());
-                        System.out.println(client.getSessionToken());
                         break;
                     case "2":
                         System.out.println("Enter username: ");
@@ -88,19 +98,7 @@ public class Client {
                         client.showMessageToClient(client.readMessage());
                         break;
                     case "3":
-                        if (client.getSessionToken() == null){
-                            System.out.println("You are not logged in!");
-                            break;
-                        }
-                        playGame(client);
-                        break;
-                    case "4":
-                        if (client.getSessionToken() == null){
-                            System.out.println("You are not logged in!");
-                            break;
-                        }
-                        System.out.println(client.getSessionToken());
-                        client.writeMessage("LGO:" + client.getSessionToken());
+                        client.writeMessage("EXT");
                         client.showMessageToClient(client.readMessage());
                         client.getSocket().close();
                         return;
@@ -117,30 +115,23 @@ public class Client {
         }
     }
 
-    private static void playGame(Client client) throws IOException{
+
+    public void mainMenu() throws IOException{
+        printWriter = new PrintWriter(socket.getOutputStream(), true);
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String message;
+
         while (true) {
-            System.out.println("Join Simple[1], Join Ranked[2], Create Simple[3], Create Ranked[4] or Go Back [5]?");
+            System.out.println("Start a new Game [1], Join a Game [2] or Exit [3]?");
             message = reader.readLine();
             switch (message) {
                 case "1":
-                    client.writeMessage("JSG:" + client.getSessionToken() + ":0");
-                    System.out.println(client.readMessage());
+                    gameMenu(true);
                     break;
                 case "2":
-                    client.writeMessage("JRG:" + client.getSessionToken() + ":1");
-                    System.out.println(client.readMessage());
+                    gameMenu(false);
                     break;
                 case "3":
-                    client.writeMessage("CSG:" + client.getSessionToken() + ":0");
-                    System.out.println(client.readMessage());
-                    break;
-                case "4":
-                    client.writeMessage("CRG:" + client.getSessionToken() + ":1");
-                    System.out.println(client.readMessage());
-                    break;
-                case "5":
                     return;
                 default:
                     System.out.println("Invalid option!");
@@ -148,4 +139,25 @@ public class Client {
             }
         }
     }
+
+
+    public void gameMenu(boolean isNewGame) throws IOException {
+        printWriter = new PrintWriter(socket.getOutputStream(), true);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String message;
+        while (true) {
+            System.out.println("Ranked [1], Normal [2] or Back [3]?");
+            message = reader.readLine();
+            String response = message.equals("1") ? (isNewGame ? "GAM:create:rank" : "GAM:join:rank")
+                    : message.equals("2") ? (isNewGame ? "GAM:create:normal" : "GAM:join:normal")
+                    : message.equals("3") ? null : "Invalid option!";
+            if (response == null) return;
+            else if (response .equals("Invalid option!")) System.out.println(response);
+            else {
+                writeMessage(response);
+                showMessageToClient(readMessage());
+            }
+        }
+    }
+
 }

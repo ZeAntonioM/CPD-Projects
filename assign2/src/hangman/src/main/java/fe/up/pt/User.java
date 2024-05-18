@@ -60,7 +60,6 @@ public class User {
         for (int i = 0; i < newTokens.length; i++) {
             if (newTokens[i] != null && newTokens[i].equals(token)) {
                 newTokens[0] = token;
-                System.out.println("Token " + token + " is now active!");
                 ret = true;
             }
             newTokens[i] = null;
@@ -74,4 +73,5 @@ public class User {
     public void setSocket(Socket userSocket) {
         this.socket = userSocket;
     }
+
 }

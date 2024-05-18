@@ -7,8 +7,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import org.mindrot.jbcrypt.BCrypt;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class Server {
     private final ReentrantLock queueLock = new ReentrantLock();
@@ -31,6 +35,7 @@ public class Server {
     public static void main(String[] args) throws IOException {
         Server server = new Server(12345, "localhost");
         server.start();
+
     }
 
     public void start() throws IOException {
@@ -89,6 +94,46 @@ public class Server {
         return users;
     }
 
+    private Dictionary<String, List<String>> readWordList(){
+        Dictionary<String, List<String>> wordList = new Hashtable<>();
+        String line = "";
+
+        try (BufferedReader br = new BufferedReader(new FileReader("src\\main\\java\\fe\\up\\pt\\word_list.csv"))) {
+            boolean first = true;
+            while ((line = br.readLine()) != null) {
+                if (first){
+                    first = false;
+                    continue;
+                }
+                // use comma as separator
+                String[] data = line.split(",");
+                String theme = data[0];
+                String word = data[1];
+                List<String> words = wordList.get(theme);
+
+                if (words == null) {
+                    words = new ArrayList<>();
+                    wordList.put(theme, words);
+                }
+                else {
+                    words.add(word);
+                }
+
+            }
+        } catch (IOException ignored) {
+        }
+
+        return wordList;
+    }
+
+    private synchronized boolean validateRequest(String token) {
+        boolean valid = false;
+        for (User user : activeUsers.values()) {
+            valid = valid || user.setActiveToken(token);
+        }
+        return valid;
+    }
+
     private void runGame(List<User> players, boolean ranked, String theme, String word) {
 
         Game game = new Game(gameID++, players, ranked, theme, word);
@@ -110,14 +155,6 @@ public class Server {
 
         game.end();
         activeGames.remove(game);
-    }
-
-    private synchronized boolean validateRequest(String token) {
-        boolean valid = false;
-        for (User user : activeUsers.values()) {
-            valid = valid || user.setActiveToken(token);
-        }
-        return valid;
     }
 
     private class ClientHandler implements Runnable {
@@ -150,7 +187,7 @@ public class Server {
 
         private boolean handleClientData(Socket clientSocket) {
             try {BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                 PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
+                PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
 
                 String[] clientMessage = readMessage(bufferedReader);
                 String messageKey = clientMessage[0];
@@ -174,58 +211,22 @@ public class Server {
                             writeMessage(printWriter, "ERR:Username already exists!");
                         }
                         break;
+                    case "EXT":
+                        writeMessage(printWriter, "SUC");
+                        return false;
                     case "LGO":
                         if (clientLogout(clientMessage[1])){
-                            writeMessage(printWriter, "SUC:Logged out successfully!");
+                            writeMessage(printWriter, "SUC");
+                            return false;
                         } else {
                             writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
                         }
-                        return false;
-                    // Stands for Join Simple Game
-                    case "JSG":
-                        if (client != null) {
-                            writeMessage(printWriter, "SUC:" + client.getActiveToken());
-                        } else {
-                            writeMessage(printWriter, "ERR:Could not join game!");
-                        }
-                    // Stands for Join Ranked Game
-                    case "JRG":
-                        if (client != null) {
-                            writeMessage(printWriter, "SUC:" + client.getActiveToken());
-                        } else {
-                            writeMessage(printWriter, "ERR:Could not join game!");
-                        }
-                    // Stands for Create Simple Game
-                    case "CSG":
-                        if (client != null) {
-                            writeMessage(printWriter, "SUC:" + client.getActiveToken());
-                        } else {
-                            writeMessage(printWriter, "ERR: Could not create Game!");
-                        }
-                    // Stands for Create Ranked Game
-                    case "CRG":
-                        if (client != null) {
-                            writeMessage(printWriter, "SUC:" + client.getActiveToken());
-                        } else {
-                            writeMessage(printWriter, "ERR: Could not create Game!");
-                        }
+                        break;
 
-                    // Stands for Game: Start
-                    case "GST":
-                        //user = clientGuess(clientMessage[1], clientMessage[2]);
-                        if (client != null) {
-                            writeMessage(printWriter, "SUC:" + client.getActiveToken());
-                        } else {
-                            writeMessage(printWriter, "ERR:Cannot Start Game!");
-                        }
-                    // Stands for Game: Send Guess
-                    case "GSG":
-                        //user = clientGuess(clientMessage[1], clientMessage[2]);
-                        if (client != null) {
-                            writeMessage(printWriter, "SUC:" + client.getActiveToken());
-                        } else {
-                            writeMessage(printWriter, "ERR:Cannot Send Guess!");
-                        }
+                    case "GAM":
+                        System.out.println(clientMessage[1] + " of type " + clientMessage[2] + " for token " + clientMessage[3]);
+                        writeMessage(printWriter, "SUC");
+                        break;
                     default:
                         System.out.println("Unknown request received!: " + messageKey);
                         writeMessage(printWriter, "ERR:Unknown request!");
@@ -239,12 +240,14 @@ public class Server {
             return true;
         }
 
+
         private boolean clientLogout(String token) {
             if (!validateRequest(token)) return false;
             for (User user : activeUsers.values()) {
                 for (String userToken : user.getTokens()) {
                     if (userToken.equals(token)) {
                         activeUsers.remove(token);
+                        System.out.println("User " + user.getUsername() + " logged out!");
                         return true;
                     }
                 }
@@ -256,8 +259,11 @@ public class Server {
             User user = allUsers.get(username);
             if (user != null) return null;
 
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
             String token = UUID.randomUUID().toString();
-            User newUser = new User(username, password, token, 1000, userSocket);
+            User newUser = new User(username, hashedPassword, token, 1000, userSocket);
+            newUser.addToken(token);
             try {
                 // Open the file
                 FileWriter fileWriter = new FileWriter("src"+File.separator+"main"+File.separator+"java"+File.separator+"fe"+File.separator+"up"+File.separator+"pt"+File.separator+"users.csv", true);
@@ -271,14 +277,15 @@ public class Server {
             activeUsers.put(username, newUser);
 
             retToken.append(token);
+            System.out.println("User " + username + " registered!");
             return newUser;
         }
 
 
         private synchronized User clientLogin(String username, String password, Socket userSocket, StringBuilder retToken) {
             User user = allUsers.get(username);
-            if (user != null && user.getPassword().equals(password)) {
 
+            if (user != null && BCrypt.checkpw(password, user.getPassword())) {
                 System.out.println("User " + username + " logged in!");
                 String token = UUID.randomUUID().toString();
 
@@ -289,14 +296,10 @@ public class Server {
                 user.setSocket(userSocket);
 
                 retToken.append(token);
+
                 return user;
             }
 
-            return null;
-        }
-
-        private User clientGuess(String token, String guess) {
-            
             return null;
         }
 
@@ -304,4 +307,5 @@ public class Server {
             return queueHead == queueTail;
         }
     }
+
 }
