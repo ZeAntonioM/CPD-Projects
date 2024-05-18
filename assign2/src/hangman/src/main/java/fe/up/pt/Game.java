@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.sql.Time;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CountDownLatch;
 
 import static java.util.Collections.shuffle;
 
@@ -25,6 +28,7 @@ public class Game {
     private final HashMap<String, User> gameUsers;
     private int queueHead = 0;
     private int queueTail = 0;
+
 
     // Game
     private final String host;
@@ -56,9 +60,7 @@ public class Game {
 
     public HashMap<String, User> getUserTokens() {
         HashMap<String, User> userTokens = new HashMap<String, User>();
-        System.out.println("HEREEEEEEEEEEEEEEEEEE");
         for (User user : this.activeUsers.values()) {
-            System.out.println(user + " " + user.getActiveToken());
             userTokens.put(user.getActiveToken(), user);
         }
         return userTokens;
@@ -72,18 +74,19 @@ public class Game {
         return port;
     }
 
-
-
-
     public void run() {
-        this.wait_for_players();
-        this.start();
+        try {
+            this.wait_for_players();
+        } catch (IOException e) {
+            System.out.println("Error waiting for players: " + e.getMessage());
+        }
+        /*this.start();
         while (this.running) {
             for (User player : this.players) {
                 this.sendGameMessage(player, "yourTurn:" + this.guessedWord);
             }
         }
-        this.end();
+        this.end();*/
     }
 
     private void sendGameMessage(User player, String tokens) {
@@ -95,16 +98,15 @@ public class Game {
         }
     }
 
-    public void wait_for_players() {
+    public void wait_for_players() throws IOException {
         System.out.println("Waiting for players to join the game...");
-        Date end = Date.from(Instant.now().plusSeconds(60));
-        Date now = Date.from(Instant.now());
 
         try {
-
             ServerSocket serverSocket = new ServerSocket(this.port);
+            long endTime = System.currentTimeMillis() + 10000;
 
-            while (now.before(end)) {
+            while (System.currentTimeMillis() < endTime) {
+                serverSocket.setSoTimeout((int) (endTime - System.currentTimeMillis())); //Timeout of 2 seconds
                 Socket clientSocket = serverSocket.accept();
 
                 // Acquire lock and add client to queue
@@ -118,13 +120,20 @@ public class Game {
                     queueLock.unlock();
                 }
 
-                now = Date.from(Instant.now());
             }
 
+            System.out.println("Game started!");
 
         }
-        catch (IOException e) {
-            System.out.println("Error while waiting for players: " + e.getMessage());
+        catch (SocketTimeoutException e) {
+            System.out.println("Timeout reached! Game starting...");
+            this.start();
+            while (this.running) {
+                for (User player : this.players) {
+                    this.sendGameMessage(player, "yourTurn:" + this.guessedWord);
+                }
+            }
+            this.end();
         }
 
 
@@ -141,13 +150,13 @@ public class Game {
         }
 
         for (User player : this.players) {
-            this.sendGameMessage(player, "startGame:" + this.theme + ":" + this.guessedWord);
+            this.sendGameMessage(player, "start:" + this.theme + ":" + this.guessedWord);
         }
     }
 
     public void end() {
         for (User player : this.players) {
-            this.sendGameMessage(player, "endGame:" + this.word);
+            this.sendGameMessage(player, "end:" + this.word);
         }
     }
 
@@ -233,6 +242,7 @@ public class Game {
         }
 
         private boolean handleClientData(Socket clientSocket) {
+
             try {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
@@ -243,6 +253,7 @@ public class Game {
                 switch (messageKey) {
                     case "GIN":
                         players.add(gameUsers.get(clientMessage[1]));
+                        System.out.println("Player " + gameUsers.get(clientMessage[1]).getUsername() + " joined the game!");
                         writeMessage(printWriter, "GAM:wait");
                         break;
                     case "GGS":
@@ -267,4 +278,6 @@ public class Game {
         }
 
     }
+
+
 }

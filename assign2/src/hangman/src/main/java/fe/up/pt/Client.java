@@ -144,7 +144,7 @@ public class Client {
             this.printWriter = new PrintWriter(socket.getOutputStream(), true);
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            writeMessage("GIN"+":"+getSessionToken());
+            writeMessage("GIN:"+getSessionToken());
             showMessageToClient(readMessage());
             inGame = true;
 

@@ -98,7 +98,7 @@ public class Server {
         Dictionary<String, List<String>> wordList = new Hashtable<>();
         String line = "";
 
-        try (BufferedReader br = new BufferedReader(new FileReader("src\\main\\java\\fe\\up\\pt\\word_list.csv"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("src"+File.separator+"main"+File.separator+"java"+File.separator+"fe"+File.separator+"up"+File.separator+"pt"+File.separator+"word_list.csv"))) {
             boolean first = true;
             while ((line = br.readLine()) != null) {
                 if (first){
@@ -226,8 +226,8 @@ public class Server {
                         String word = themeWord[1];
 
                         if (action.equals("create")) {
-                            Game game = new Game(12346, "localhost", activeUsers,ranked, theme, word);
-                            new Thread(game::run).start();
+                            Game game = new Game(12346, "localhost", activeUsers, ranked, theme, word);
+                            Thread.ofVirtual().start(game::run);
                             writeMessage(printWriter, "CON"+":"+game.getPort()+":"+game.getHost());
 
                         }
