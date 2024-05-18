@@ -11,6 +11,7 @@ public class Client {
     private PrintWriter printWriter;
     private BufferedReader bufferedReader;
     private String sessionToken;
+    private boolean inGame = false;
 
     public Client(String address, int port) throws IOException{
         this.address = address;
@@ -60,6 +61,20 @@ public class Client {
             } catch (IOException e) {
                 System.out.println("Error: " + e.getMessage());
             }
+        } else if (data[0].equals("CON")) {
+            String host = data[2];
+            int port = Integer.parseInt(data[1]);
+            connectToGame(host, port);
+        } else if (data[0].equals("GAM")) {
+            switch (data[1]) {
+                case "wait" -> System.out.println("Waiting for players...\n");
+                case "start" -> System.out.println("Game started!\n");
+                case "end" -> System.out.println("Game ended!\n");
+                default -> System.out.println("Invalid option!\n");
+            }
+        }
+        else {
+            System.out.println("Unknown response received!: " + data[0] + "\n");
         }
     }
 
@@ -75,7 +90,7 @@ public class Client {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             String message;
 
-            while (true) {
+            while (!client.inGame) {
                 System.out.println("Login [1], Register [2] or Exit [3]?");
                 message = reader.readLine();
                 String username;
@@ -107,11 +122,35 @@ public class Client {
                         break;
                 }
             }
+            while (client.inGame){
+                // GAME LOOP GUI
+            }
 
         } catch (IOException e) {
             System.err.println("Error: " + e.getMessage());
         } finally {
             System.out.println("Closing connection...");
+        }
+    }
+
+    public void connectToGame(String host, int port) {
+        try {
+            // Close the old socket
+            if (this.socket != null) {
+                this.socket.close();
+            }
+
+            this.socket = new Socket(host, port);
+            this.printWriter = new PrintWriter(socket.getOutputStream(), true);
+            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            writeMessage("GIN"+":"+getSessionToken());
+            showMessageToClient(readMessage());
+            inGame = true;
+
+        } catch (IOException e) {
+            e.printStackTrace();  // Print the stack trace of the exception
+            System.out.println("Error while connecting to the game: " + e.getMessage());
         }
     }
 
@@ -121,7 +160,7 @@ public class Client {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String message;
 
-        while (true) {
+        while (!inGame) {
             System.out.println("Start a new Game [1], Join a Game [2] or Log Out [3]?");
             message = reader.readLine();
             switch (message) {
@@ -158,6 +197,8 @@ public class Client {
             else {
                 client.writeMessage(response);
                 client.showMessageToClient(readMessage());
+
+                return;
             }
         }
     }

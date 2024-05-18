@@ -22,14 +22,15 @@ public class Game {
     private final ReentrantLock queueLock = new ReentrantLock();
     private final Condition notEmpty = queueLock.newCondition();
     private final Socket[] clientQueue = new Socket[10];
+    private final HashMap<String, User> gameUsers;
     private int queueHead = 0;
     private int queueTail = 0;
 
     // Game
     private final String host;
     private int port;
-    public HashMap<String, User> users = new HashMap<String, User>();
-    private List<User> players;
+    public HashMap<String, User> activeUsers = new HashMap<String, User>();
+    private List<User> players = new ArrayList<User>();
     private int numPlayers;
     private boolean ranked;
     private String theme;
@@ -43,7 +44,8 @@ public class Game {
         this.port = port;
         this.host = host;
 
-        this.users = users;
+        this.activeUsers = users;
+        this.gameUsers = getUserTokens();
         this.ranked = ranked;
         this.theme = theme;
         this.word = word;
@@ -51,6 +53,26 @@ public class Game {
 
         this.running = true;
     }
+
+    public HashMap<String, User> getUserTokens() {
+        HashMap<String, User> userTokens = new HashMap<String, User>();
+        System.out.println("HEREEEEEEEEEEEEEEEEEE");
+        for (User user : this.activeUsers.values()) {
+            System.out.println(user + " " + user.getActiveToken());
+            userTokens.put(user.getActiveToken(), user);
+        }
+        return userTokens;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+
 
 
     public void run() {
@@ -74,7 +96,7 @@ public class Game {
     }
 
     public void wait_for_players() {
-
+        System.out.println("Waiting for players to join the game...");
         Date end = Date.from(Instant.now().plusSeconds(60));
         Date now = Date.from(Instant.now());
 
@@ -220,10 +242,11 @@ public class Game {
 
                 switch (messageKey) {
                     case "GIN":
-                        writeMessage(printWriter, "SUC");
-                        players.add(users.get(clientMessage[1]));
+                        players.add(gameUsers.get(clientMessage[1]));
+                        writeMessage(printWriter, "GAM:wait");
+                        break;
                     case "GGS":
-                        receiveGuess(clientMessage[1], users.get(clientMessage[2]));
+                        receiveGuess(clientMessage[1], gameUsers.get(clientMessage[2]));
                         break;
                     default:
                         System.out.println("Unknown request received!: " + messageKey);

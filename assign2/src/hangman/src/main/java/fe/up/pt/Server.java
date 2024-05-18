@@ -22,6 +22,7 @@ public class Server {
     private int port = 12345;
     private HashMap<String, User> allUsers = readUsers();
     private final HashMap<String, User> activeUsers = new HashMap<>();
+    private final Dictionary<String, List<String>> dictionaryWords = readWordList();
     private List<Game> activeGames = new ArrayList<>();
     private int gameID = 0;
 
@@ -58,6 +59,8 @@ public class Server {
         }
     }
 
+
+
     public void writeMessage(PrintWriter printWriter, String message) throws IOException {
         printWriter.println(message);
         printWriter.flush();
@@ -83,7 +86,7 @@ public class Server {
                 String username = data[0];
                 String password = data[1];
                 int rank = Integer.parseInt(data[2]);
-                users.put(username, new User(username, password, "", rank, null));
+                users.put(username, new User(username, password, null, rank, null));
             }
         } catch (IOException ignored) {
         }
@@ -121,6 +124,21 @@ public class Server {
         }
 
         return wordList;
+    }
+    private String[] getRandomThemeWord() {
+        List<String> keys = Collections.list(dictionaryWords.keys());
+        Random random = new Random();
+
+        // Get a random key
+        int randomKeyIndex = random.nextInt(keys.size());
+        String randomKey = keys.get(randomKeyIndex);
+
+        // Get a random value from the key
+        List<String> values = dictionaryWords.get(randomKey);
+        int randomValueIndex = random.nextInt(values.size());
+        String randomValue = values.get(randomValueIndex);
+
+        return new String[] {randomKey, randomValue};
     }
 
     private synchronized boolean validateRequest(String token) {
@@ -200,9 +218,21 @@ public class Server {
                         break;
                     case "GAM":
                         System.out.println(clientMessage[1] + " of type " + clientMessage[2] + " for token " + clientMessage[3]);
-                        writeMessage(printWriter, "SUC");
 
-                        break;
+                        String action = clientMessage[1];
+                        boolean ranked = clientMessage[2].equals("rank");
+                        String[] themeWord = getRandomThemeWord();
+                        String theme = themeWord[0];
+                        String word = themeWord[1];
+
+                        if (action.equals("create")) {
+                            Game game = new Game(12346, "localhost", activeUsers,ranked, theme, word);
+                            new Thread(game::run).start();
+                            writeMessage(printWriter, "CON"+":"+game.getPort()+":"+game.getHost());
+
+                        }
+                        return false;
+
                     default:
                         System.out.println("Unknown request received!: " + messageKey);
                         writeMessage(printWriter, "ERR:Unknown request!");
