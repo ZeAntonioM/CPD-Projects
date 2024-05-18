@@ -190,9 +190,9 @@ public class Server {
                         }
                         break;
                     case "GAM":
-                        System.out.println("Game started!");
+                        System.out.println(clientMessage[1] + " of type " + clientMessage[2] + " for token " + clientMessage[3]);
                         writeMessage(printWriter, "SUC");
-                        return false;
+                        break;
                     default:
                         System.out.println("Unknown request received!: " + messageKey);
                         writeMessage(printWriter, "ERR:Unknown request!");

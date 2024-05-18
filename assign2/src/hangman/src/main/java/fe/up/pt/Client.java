@@ -33,7 +33,13 @@ public class Client {
     }
 
     private void writeMessage(String message) throws IOException {
-        printWriter.println(message);
+        String messageKey = message.split(":")[0];
+        if (messageKey.equals("LGN") || messageKey.equals("REG")){
+            this.setSessionToken(null);
+        }
+
+        String token = getSessionToken() != null ? ":" + getSessionToken() : "";
+        printWriter.println(message + token);
         printWriter.flush();
     }
 
@@ -82,7 +88,6 @@ public class Client {
                         password = reader.readLine();
                         client.writeMessage("LGN:" + username + ":" + password);
                         client.showMessageToClient(client.readMessage());
-                        System.out.println(client.getSessionToken());
                         break;
                     case "2":
                         System.out.println("Enter username: ");
@@ -97,8 +102,7 @@ public class Client {
                             System.out.println("You are not logged in!");
                             break;
                         }
-                        System.out.println(client.getSessionToken());
-                        client.writeMessage("LGO:" + client.getSessionToken());
+                        client.writeMessage("LGO");
                         client.showMessageToClient(client.readMessage());
                         client.getSocket().close();
                         return;
@@ -146,31 +150,14 @@ public class Client {
         while (true) {
             System.out.println("Ranked [1], Normal [2] or Back [3]?");
             message = reader.readLine();
-            switch (message) {
-                case "1":
-                    if (isNewGame){
-                        // Handle new game start
-                        writeMessage("GAM"); // Send message to server
-                    } else {
-                        // Handle game join
-                        writeMessage("GAM"); // Send message to server
-                    }
-                    break;
-                case "2":
-                    if (isNewGame){
-                        // Handle new game start
-                        writeMessage("GAM"); // Send message to server
-                    } else {
-                        // Handle game join
-                        writeMessage("GAM"); // Send message to server
-                    }
-                    break;
-                case "3":
-                    mainMenu();
-                    return;
-                default:
-                    System.out.println("Invalid option!");
-                    break;
+            String response = message.equals("1") ? (isNewGame ? "GAM:create:rank" : "GAM:join:rank")
+                    : message.equals("2") ? (isNewGame ? "GAM:create:normal" : "GAM:join:normal")
+                    : message.equals("3") ? null : "Invalid option!";
+            if (response == null) return;
+            else if (response .equals("Invalid option!")) System.out.println(response);
+            else {
+                writeMessage(response);
+                showMessageToClient(readMessage());
             }
         }
     }
