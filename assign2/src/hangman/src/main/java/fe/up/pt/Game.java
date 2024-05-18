@@ -1,14 +1,34 @@
 package fe.up.pt;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+
 import static java.util.Collections.shuffle;
 
 public class Game {
 
-    private int gameID;
+    //Server side
+    private final ReentrantLock queueLock = new ReentrantLock();
+    private final Condition notEmpty = queueLock.newCondition();
+    private final Socket[] clientQueue = new Socket[10];
+    private int queueHead = 0;
+    private int queueTail = 0;
+
+    // Game
+    private final String host;
+    private int port;
+    public HashMap<String, User> users = new HashMap<String, User>();
     private List<User> players;
     private int numPlayers;
     private boolean ranked;
@@ -16,78 +36,129 @@ public class Game {
     private String word;
     private boolean running;
     private String guessedWord;
-    private List<Integer> ranks;
-    public Game(int gameID, List<User> players, boolean ranked, String theme, String word) {
+    private List<Integer> ranks = new ArrayList<Integer>();
 
-        this.gameID = gameID;
-        this.numPlayers = players.size();
-        this.players = players;
-        shuffle(this.players);
+    public Game(int port, String host, HashMap<String, User> users, boolean ranked, String theme, String word) {
+
+        this.port = port;
+        this.host = host;
+
+        this.users = users;
         this.ranked = ranked;
         this.theme = theme;
         this.word = word;
-        this.running = true;
         this.guessedWord = this.word.replaceAll("[a-zA-Z]", "_");
-        this.ranks = new ArrayList<Integer>();
-        for (User player : this.players) {
-            this.ranks.add(player.getRank());
+
+        this.running = true;
+    }
+
+
+    public void run() {
+        this.wait_for_players();
+        this.start();
+        while (this.running) {
+            for (User player : this.players) {
+                this.sendGameMessage(player, "yourTurn:" + this.guessedWord);
+            }
+        }
+        this.end();
+    }
+
+    private void sendGameMessage(User player, String tokens) {
+        try {
+            PrintWriter printWriter = new PrintWriter(player.getSocket().getOutputStream(), true);
+            writeMessage(printWriter, "GAM" + ":" + tokens + ":" + player.getActiveToken());
+        } catch (IOException e) {
+            System.out.println("Error sending game message: " + e.getMessage());
+        }
+    }
+
+    public void wait_for_players() {
+
+        Date end = Date.from(Instant.now().plusSeconds(60));
+        Date now = Date.from(Instant.now());
+
+        try {
+
+            ServerSocket serverSocket = new ServerSocket(this.port);
+
+            while (now.before(end)) {
+                Socket clientSocket = serverSocket.accept();
+
+                // Acquire lock and add client to queue
+                queueLock.lock();
+                try {
+                    clientQueue[queueTail] = clientSocket;
+                    queueTail = (queueTail + 1) % clientQueue.length; // Wrap-around logic
+                    Thread.ofVirtual().start(new ClientHandler());
+                    notEmpty.signal(); // Signal the waiting client handling thread
+                } finally {
+                    queueLock.unlock();
+                }
+
+                now = Date.from(Instant.now());
+            }
+
+
+        }
+        catch (IOException e) {
+            System.out.println("Error while waiting for players: " + e.getMessage());
         }
 
 
     }
 
     public void start() {
+
+        this.numPlayers = players.size();
+        shuffle(this.players);
+
+
         for (User player : this.players) {
-            this.sendGameStart(player, this.theme, this.guessedWord);
+            this.ranks.add(player.getRank());
+        }
+
+        for (User player : this.players) {
+            this.sendGameMessage(player, "startGame:" + this.theme + ":" + this.guessedWord);
         }
     }
 
     public void end() {
         for (User player : this.players) {
-            this.sendGameEnd(player, this.word);
+            this.sendGameMessage(player, "endGame:" + this.word);
         }
     }
 
-    public void sendAskForGuess(User player) {
-        try {
-            //this.validateToken(player);
-            PrintWriter printWriter = new PrintWriter(player.getSocket().getOutputStream(), true);
-            player.getSocket().getOutputStream().write(("GAG:" + player.getActiveToken() + "\n").getBytes());
-        } catch (IOException e) {
-            System.out.println("Error sending ask for guess message: " + e.getMessage());
-        }
-    }
-
-    public void receiveGuess(String guess, int num_player) {
-        User player = this.players.get(num_player);
+    public void receiveGuess(String guess, User player) {
         if ((guess.length() > 1) && (guess.equals(word))) {
-            if (this.ranked) this.updateRank(num_player, 20);
+            if (this.ranked) this.updateRank(player, 20);
 
             this.guessedWord = this.word;
             this.running = false;
-            this.sendCorrectGuess(player, guess);
+            for (User p : this.players) this.sendGameMessage(p, "correctGuess:" + guess + ":" + this.guessedWord + ":" + player.getUsername());
 
         }
         else if (guess.length() > 1) {
-            if (this.ranked) this.updateRank(num_player, -10);
+            if (this.ranked) this.updateRank(player, -10);
 
-            this.sendWrongGuess(player, guess);
+            for (User p : this.players) this.sendGameMessage(p, "wrongGuess:" + guess + ":" + player.getUsername());
         }
         else if (this.checkLetter(guess)){
-            if (this.ranked) this.updateRank(num_player, 5);
+            if (this.ranked) this.updateRank(player, 5);
 
             this.updateGuessedWord(guess);
-            this.sendCorrectGuess(player,guess);
+            for (User p : this.players) this.sendGameMessage(p, "correctGuess:" + guess + ":" + this.guessedWord + ":" + player.getUsername());
         }
         else {
-            if (this.ranked) this.updateRank(num_player, -2);
+            if (this.ranked) this.updateRank(player, -3);
 
-            this.sendWrongGuess(player, guess);
+            for (User p : this.players) this.sendGameMessage(p, "wrongGuess:" + guess + ":" + player.getUsername());
         }
     }
 
-    private void updateRank(int player, int points) {
-        this.ranks.set(player, this.ranks.get(player) + points);
+    private void updateRank(User player, int points) {
+        int playerNumber = this.players.indexOf(player);
+        this.ranks.set(playerNumber, this.ranks.get(playerNumber) + points);
     }
 
     private boolean checkLetter(String letter) {
@@ -102,71 +173,75 @@ public class Game {
         }
     }
 
-    private void sendGameStart(User player, String theme, String guessedWord) {
-        try {
-            //this.validateToken(player);
-            player.getSocket().getOutputStream().write(("GST:" + gameID + ":" + player.getActiveToken() + ":" + theme + ":" + guessedWord + "\n").getBytes());
-        } catch (IOException e) {
-            System.out.println("Error sending game start message: " + e.getMessage());
+    public void writeMessage(PrintWriter printWriter, String message) throws IOException {
+        printWriter.println(message);
+        printWriter.flush();
+    }
+
+    public String[] readMessage(BufferedReader bufferedReader) throws IOException {
+        return bufferedReader.readLine().split(":");
+    }
+
+    private class ClientHandler implements Runnable {
+        @Override
+        public void run() {
+            while (true) {
+                Socket clientSocket = null;
+
+                // Acquire lock and remove client from queue
+                queueLock.lock();
+                try {
+                    while (isEmpty()) {
+                        notEmpty.await(); // Wait if the queue is empty
+                    }
+                    clientSocket = clientQueue[queueHead];
+                    queueHead = (queueHead + 1) % clientQueue.length;
+                } catch (InterruptedException e) {
+                } finally {
+                    queueLock.unlock();
+                }
+
+                while (handleClientData(clientSocket)) ;
+
+                try {
+                    clientSocket.close();
+                } catch (IOException e) {
+                }
+            }
         }
-    }
 
-    private void sendGameEnd(User player, String word) {
-        try {
-            //this.validateToken(player);
-            player.getSocket().getOutputStream().write(("GEN:" + gameID + ":" + player.getActiveToken() + ":" + word + ":" + "\n").getBytes());
-        } catch (IOException e) {
-            System.out.println("Error sending game end message: " + e.getMessage());
+        private boolean handleClientData(Socket clientSocket) {
+            try {
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
+
+                String[] clientMessage = readMessage(bufferedReader);
+                String messageKey = clientMessage[0];
+
+                switch (messageKey) {
+                    case "GIN":
+                        writeMessage(printWriter, "SUC");
+                        players.add(users.get(clientMessage[1]));
+                    case "GGS":
+                        receiveGuess(clientMessage[1], users.get(clientMessage[2]));
+                        break;
+                    default:
+                        System.out.println("Unknown request received!: " + messageKey);
+                        writeMessage(printWriter, "ERR:Unknown request!");
+                        break;
+                }
+
+            } catch (IOException e) {
+                System.out.println("Error while handling client data: " + e.getMessage());
+                return false;
+            }
+            return true;
         }
-    }
 
-    private void sendCorrectGuess(User player, String guess) {
-        try {
-            //this.validateToken(player);
-            player.getSocket().getOutputStream().write(("GCG:" + player.getActiveToken() + ":" + guess + "\n").getBytes());
-        } catch (IOException e) {
-            System.out.println("Error sending correct guess message: " + e.getMessage());
+
+        private boolean isEmpty() {
+            return queueHead == queueTail;
         }
+
     }
-
-    private void sendWrongGuess(User player, String guess) {
-        try {
-            //this.validateToken(player);
-            player.getSocket().getOutputStream().write(("GWG:" + player.getActiveToken() + ":" + guess + "\n").getBytes());
-        } catch (IOException e) {
-            System.out.println("Error sending wrong guess message: " + e.getMessage());
-        }
-    }
-
-
-
-
-    public List<User> getPlayers() {
-        return players;
-    }
-
-    public int getNumPlayers() {
-        return numPlayers;
-    }
-
-    public boolean isRanked() {
-        return ranked;
-    }
-
-    public String getWord() {
-        return word;
-    }
-
-    public boolean isRunning() {
-        return running;
-    }
-
-    public String getGuessedWord() {
-        return guessedWord;
-    }
-
-    public List<Integer> getRanks() {
-        return ranks;
-    }
-
 }

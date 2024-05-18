@@ -11,8 +11,6 @@ import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import org.mindrot.jbcrypt.BCrypt;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 public class Server {
     private final ReentrantLock queueLock = new ReentrantLock();
@@ -42,7 +40,6 @@ public class Server {
         ServerSocket serverSocket = new ServerSocket(this.port);
 
         // Start the dedicated client handling thread
-
         System.out.println("Server started on port " + this.port + "!");
         while (true) {
             // Wait for a new connection
@@ -134,28 +131,6 @@ public class Server {
         return valid;
     }
 
-    private void runGame(List<User> players, boolean ranked, String theme, String word) {
-
-        Game game = new Game(gameID++, players, ranked, theme, word);
-
-        activeGames.add(game);
-
-        game.start();
-
-        while (game.isRunning()) {
-            for (int i = 0; i < game.getNumPlayers(); i++) {
-                User player = game.getPlayers().get(i);
-                ClientHandler connection = new ClientHandler();
-
-                game.sendAskForGuess(player);
-
-                connection.handleClientData(player.getSocket());
-            }
-        }
-
-        game.end();
-        activeGames.remove(game);
-    }
 
     private class ClientHandler implements Runnable {
         @Override
@@ -226,6 +201,7 @@ public class Server {
                     case "GAM":
                         System.out.println(clientMessage[1] + " of type " + clientMessage[2] + " for token " + clientMessage[3]);
                         writeMessage(printWriter, "SUC");
+
                         break;
                     default:
                         System.out.println("Unknown request received!: " + messageKey);
