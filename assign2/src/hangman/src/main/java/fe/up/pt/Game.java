@@ -1,9 +1,6 @@
 package fe.up.pt;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -25,7 +22,6 @@ public class Game {
     private final ReentrantLock queueLock = new ReentrantLock();
     private final Condition notEmpty = queueLock.newCondition();
     private final Socket[] clientQueue = new Socket[10];
-    private final HashMap<String, User> gameUsers;
     private int queueHead = 0;
     private int queueTail = 0;
 
@@ -33,7 +29,6 @@ public class Game {
     // Game
     private final String host;
     private int port;
-    public HashMap<String, User> activeUsers = new HashMap<String, User>();
     private List<User> players = new ArrayList<User>();
     private int numPlayers;
     private boolean ranked;
@@ -41,29 +36,21 @@ public class Game {
     private String word;
     private boolean running;
     private String guessedWord;
+    private HashMap<String, User> gameUsers;
     private List<Integer> ranks = new ArrayList<Integer>();
 
-    public Game(int port, String host, HashMap<String, User> users, boolean ranked, String theme, String word) {
+    public Game(int port, String host, HashMap<String, User> gameUsers, boolean ranked, String theme, String word) {
 
         this.port = port;
         this.host = host;
 
-        this.activeUsers = users;
-        this.gameUsers = getUserTokens();
+        this.gameUsers = gameUsers;
         this.ranked = ranked;
         this.theme = theme;
         this.word = word;
         this.guessedWord = this.word.replaceAll("[a-zA-Z]", "_");
 
         this.running = true;
-    }
-
-    public HashMap<String, User> getUserTokens() {
-        HashMap<String, User> userTokens = new HashMap<String, User>();
-        for (User user : this.activeUsers.values()) {
-            userTokens.put(user.getActiveToken(), user);
-        }
-        return userTokens;
     }
 
     public String getHost() {
@@ -76,17 +63,10 @@ public class Game {
 
     public void run() {
         try {
-            this.wait_for_players();
+            this.waitForPlayers();
         } catch (IOException e) {
             System.out.println("Error waiting for players: " + e.getMessage());
         }
-        /*this.start();
-        while (this.running) {
-            for (User player : this.players) {
-                this.sendGameMessage(player, "yourTurn:" + this.guessedWord);
-            }
-        }
-        this.end();*/
     }
 
     private void sendGameMessage(User player, String tokens) {
@@ -98,7 +78,14 @@ public class Game {
         }
     }
 
-    public void wait_for_players() throws IOException {
+    private void sendGameMessageAll(String message) {
+        for (User player : this.players) {
+            //BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(player.getSocket().getInputStream()));
+            this.sendGameMessage(player, message);
+        }
+    }
+
+    public void waitForPlayers() throws IOException {
         System.out.println("Waiting for players to join the game...");
 
         try {
@@ -128,15 +115,35 @@ public class Game {
         catch (SocketTimeoutException e) {
             System.out.println("Timeout reached! Game starting...");
             this.start();
+
+            //turns
             while (this.running) {
                 for (User player : this.players) {
-                    this.sendGameMessage(player, "yourTurn:" + this.guessedWord);
+                    this.turn(player);
+                    if (!this.running) break;
+                    this.waitForPlayerMove(player);
+                    System.out.println("HEREEEEEEEEEEEEEEEEEEEEE");
                 }
             }
             this.end();
         }
 
+    }
 
+    public void waitForPlayerMove(User player) {
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(player.getSocket().getInputStream()));
+            String[] response = readMessage(bufferedReader);
+
+            // Process the player's response
+            if (response[0].equals("GGS")) {
+                receiveGuess(response[1], player);
+            }
+
+            System.out.println("CU");
+        } catch (IOException e) {
+            System.out.println("Error waiting for player move: " + e.getMessage());
+        }
     }
 
     public void start() {
@@ -152,7 +159,13 @@ public class Game {
         for (User player : this.players) {
             this.sendGameMessage(player, "start:" + this.theme + ":" + this.guessedWord);
         }
+;
     }
+
+    public void turn(User player) {
+        this.sendGameMessage(player, "yourTurn:" + this.guessedWord);
+    }
+
 
     public void end() {
         for (User player : this.players) {
@@ -161,35 +174,45 @@ public class Game {
     }
 
     public void receiveGuess(String guess, User player) {
+        System.out.println(this.word);
+        System.out.println("Received guess: " + guess + " from player " + player.getUsername());
         if ((guess.length() > 1) && (guess.equals(word))) {
+            System.out.println("Cu1");
             if (this.ranked) this.updateRank(player, 20);
 
             this.guessedWord = this.word;
             this.running = false;
-            for (User p : this.players) this.sendGameMessage(p, "correctGuess:" + guess + ":" + this.guessedWord + ":" + player.getUsername());
-
+            sendGameMessageAll("correctGuess:" + guess + ":" + this.guessedWord + ":" + player.getUsername());
         }
         else if (guess.length() > 1) {
+            System.out.println("CU2");
             if (this.ranked) this.updateRank(player, -10);
 
-            for (User p : this.players) this.sendGameMessage(p, "wrongGuess:" + guess + ":" + player.getUsername());
+            sendGameMessageAll("wrongGuess:" + guess + ":" + this.guessedWord + ":" + player.getUsername());
         }
         else if (this.checkLetter(guess)){
+            System.out.println("CU3");
             if (this.ranked) this.updateRank(player, 5);
 
             this.updateGuessedWord(guess);
-            for (User p : this.players) this.sendGameMessage(p, "correctGuess:" + guess + ":" + this.guessedWord + ":" + player.getUsername());
+            if (this.guessedWord.equals(this.word)) this.running = false;
+
+            sendGameMessageAll("correctGuess:" + guess + ":" + this.guessedWord + ":" + player.getUsername());
         }
         else {
+            System.out.println("CU4");
             if (this.ranked) this.updateRank(player, -3);
 
-            for (User p : this.players) this.sendGameMessage(p, "wrongGuess:" + guess + ":" + player.getUsername());
+            sendGameMessageAll("wrongGuess:" + guess + ":" + this.guessedWord + ":" + player.getUsername());
         }
     }
 
     private void updateRank(User player, int points) {
+        /*
         int playerNumber = this.players.indexOf(player);
         this.ranks.set(playerNumber, this.ranks.get(playerNumber) + points);
+
+         */
     }
 
     private boolean checkLetter(String letter) {

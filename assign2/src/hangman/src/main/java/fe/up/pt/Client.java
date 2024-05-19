@@ -70,14 +70,9 @@ public class Client {
             String host = data[2];
             int port = Integer.parseInt(data[1]);
             connectToGame(host, port);
-        } else if (data[0].equals("GAM")) {
-            switch (data[1]) {
-                case "wait" -> System.out.println("Waiting for players...\n");
-                case "start" -> System.out.println("Game started!\n");
-                case "end" -> System.out.println("Game ended!\n");
-                default -> System.out.println("Invalid option!\n");
-            }
-        } else if (data[0].equals("SUC")) {
+        }
+
+        else if (data[0].equals("SUC")) {
             System.out.println("Success!\n");
         }
         else {
@@ -97,7 +92,8 @@ public class Client {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             String message;
 
-            while (!client.inGame) {
+            while (true) {
+
                 System.out.println("Login [1], Register [2] or Exit [3]?");
                 message = reader.readLine();
                 String username;
@@ -128,10 +124,6 @@ public class Client {
                         System.out.println("Invalid option!");
                         break;
                 }
-            }
-            //TODO: perceber a logica do game loop e implementar um menu de jeito actually funcional
-            while (client.inGame){
-                // GAME LOOP GUI
             }
 
         } catch (IOException e) {
@@ -168,24 +160,71 @@ public class Client {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String message;
 
-        while (!inGame) {
-            System.out.println("Start a new Game [1], Join a Game [2] or Log Out [3]?");
-            message = reader.readLine();
-            switch (message) {
-                case "1":
-                    gameMenu(true, client);
-                    break;
-                case "2":
-                    gameMenu(false, client);
-                    break;
-                case "3":
-                    client.writeMessage("LGO");
-                    client.showMessageToClient(client.readMessage());
-                    return;
-                default:
-                    System.out.println("Invalid option!");
-                    break;
+        while (true) {
+            if (!inGame) {
+                System.out.println("Start a new Game [1], Join a Game [2] or Log Out [3]?");
+                message = reader.readLine();
+                switch (message) {
+                    case "1":
+                        gameMenu(true, client);
+                        break;
+                    case "2":
+                        gameMenu(false, client);
+                        break;
+                    case "3":
+                        client.writeMessage("LGO");
+                        client.showMessageToClient(client.readMessage());
+                        return;
+                    default:
+                        System.out.println("Invalid option!");
+                        break;
+                }
             }
+            else {
+                message = client.readMessage();
+                String[] data = message.split(":");
+                String guess = "";
+
+                if (data[0].equals("GAM")) {
+                    switch (data[1]) {
+                        case "wait" :
+                            System.out.println("Waiting for players...\n");
+                            // Send ACC message to game server
+                            break;
+                        case "start" :
+                            System.out.println("Game started!\n");
+                            System.out.println("Theme: " + data[2]);
+                            System.out.println("Word: " + data[3]);
+                            // Send ACC message to game server
+                            break;
+                        case "end" :
+                            System.out.println("Game ended!\n");
+                            // Send ACC message to game server
+                            client.inGame = false;
+                            break;
+                        case "yourTurn" :
+                            System.out.println("It's your turn!\n");
+                            System.out.println("Please enter your guess: ");
+                            guess = reader.readLine();
+                            client.writeMessage("GGS:" + guess);
+                            break;
+                        case "correctGuess":
+                            System.out.println("Correct guess by" + data[2] + "!\n");
+                            System.out.println("Word: " + data[3] + "\n");
+                            // Send ACC message to game server
+                            break;
+                        case "wrongGuess":
+                            System.out.println("Wrong guess"+ data[2]  +"!\n");
+                            System.out.println("Word: " + data[3] + "\n");
+                            // Send ACC message to game server
+                            break;
+                        default :
+                            System.out.println("Invalid option!\n");
+                            break;
+                    }
+                }
+            }
+
         }
     }
 
@@ -200,7 +239,6 @@ public class Client {
             String response = message.equals("1") ? (isNewGame ? "GAM:create:rank" : "GAM:join:rank")
                     : message.equals("2") ? (isNewGame ? "GAM:create:normal" : "GAM:join:normal")
                     : message.equals("3") ? null : "Invalid option!";
-            System.out.println(response);
             if (response == null) return;
             else if (response.equals("Invalid option!")) System.out.println(response);
             else {
@@ -218,6 +256,7 @@ public class Client {
                         return;
                     }
                     if (msg != null) client.showMessageToClient(msg);
+                    return;
                 }
             }
         }

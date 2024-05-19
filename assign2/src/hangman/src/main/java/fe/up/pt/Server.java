@@ -20,6 +20,7 @@ public class Server {
     private List<Game> activeGames = new ArrayList<>();
     private int gameID = 0;
     private List<UserQueue> userQueues = new ArrayList<>();
+    private int basePort = 12346;
     public Server(int port, String host) {
         this.port = port;
         this.host = host;
@@ -272,6 +273,9 @@ public class Server {
                         this.inGame = result;
                         writeMessage(printWriter, result ? "SUC" : "ERR:No games found!");
                         return !result;
+                    case "GGS":
+                        System.out.println("WTF");
+                        break;
                     default:
                         System.out.println("Unknown request received!: " + messageKey);
                         writeMessage(printWriter, "ERR:Unknown request!");
@@ -402,6 +406,14 @@ public class Server {
     }
     }
 
+    public HashMap<String, User> getUserTokens() {
+        HashMap<String, User> userTokens = new HashMap<String, User>();
+        for (User user : this.activeUsers.values()) {
+            userTokens.put(user.getActiveToken(), user);
+        }
+        return userTokens;
+    }
+
     private class QueueDispacher implements Runnable {
         private boolean ranked;
         public QueueDispacher(boolean ranked){
@@ -417,7 +429,8 @@ public class Server {
                         String[] themeWord = getRandomThemeWord();
                         String theme = themeWord[0];
                         String word = themeWord[1];
-                        Game game = new Game(12346, "localhost", activeUsers, ranked, theme, word);
+                        HashMap<String, User> tokenUsers = getUserTokens();
+                        Game game = new Game(basePort++, "localhost", tokenUsers, ranked, theme, word);
                         Thread.ofVirtual().start(game::run);
 
                         for (User user : userQueue.queue) {
