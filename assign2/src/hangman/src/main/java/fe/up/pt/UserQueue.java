@@ -55,12 +55,13 @@ public class UserQueue extends Queue<User> {
         @Override
         public void run() {
             try {
-                Thread.sleep(90000);
+                Thread.sleep(20000);
                 queue.ended = true;
             } catch (InterruptedException e) {
                 System.out.println("Error: " + e.getMessage());
             }
         }
     }
+
 
 }

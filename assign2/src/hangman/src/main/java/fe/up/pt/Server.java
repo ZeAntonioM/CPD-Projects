@@ -5,17 +5,13 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
-import org.mindrot.jbcrypt.BCrypt;
 
 public class Server {
     private final Queue<Socket> clientQueue = new Queue<>();
     private final ReentrantLock accountLock = new ReentrantLock();
+    private final ReentrantLock queueLock = new ReentrantLock();
     private final String host;
     private int port = 12345;
     private HashMap<String, User> allUsers = readUsers();
@@ -39,6 +35,7 @@ public class Server {
 
         // Start the dedicated client handling thread
         System.out.println("Server started on port " + this.port + "!");
+        Thread.ofVirtual().start(new QueueDispacher(true));
         while (true) {
             // Wait for a new connection
             Socket clientSocket = serverSocket.accept();
@@ -165,23 +162,36 @@ public class Server {
     }
 
     private void createQueue(User user, boolean ranked) {
-        UserQueue userQueue = new UserQueue(ranked, user.getRank());
-        userQueue.enqueue(user);
-        userQueues.add(userQueue);
-        userQueue.start();
+        try{
+            queueLock.lock();
+            UserQueue userQueue = new UserQueue(ranked, user.getRank());
+            userQueue.enqueue(user);
+            userQueues.add(userQueue);
+            userQueue.start();
+        } catch (Exception e) {
+            System.out.println("Error while creating queue: " + e.getMessage());
+        } finally {
+            queueLock.unlock();
+        }
     }
 
     private boolean joinQueue(User user, UserQueue queue) {
-        if (queue.ended) return false;
-        queue.enqueue(user);
-        queue.setMeanRank();
-        System.out.println("User " + user.getUsername() + " joined queue!");
-        System.out.println("Queue: " + queue.queue.toString());
-        return true;
+        try{
+            queueLock.lock();
+            if (queue.ended) return false;
+            queue.enqueue(user);
+            queue.setMeanRank();
+            System.out.println("User " + user.getUsername() + " joined queue!");
+            System.out.println("Queue: " + queue.queue.toString());
+            return true;
+        } finally {
+            queueLock.unlock();
+        }
     }
 
 
     private class ClientHandler implements Runnable {
+        private boolean inGame = false;
         @Override
         public void run() {
             while (true) {
@@ -191,6 +201,11 @@ public class Server {
                 }
 
                 while (handleClientData(clientSocket));
+
+                if (inGame){ //if client in game, lets not close socket and wait for the client to return from game
+                    while(inGame);
+                    continue;
+                }
 
                 try {
                     clientSocket.close();
@@ -240,23 +255,6 @@ public class Server {
                         }
                         break;
                     case "GAM":
-                        /*
-                        System.out.println(clientMessage[1] + " of type " + clientMessage[2] + " for token " + clientMessage[3]);
-
-                        String action = clientMessage[1];
-                        boolean ranked = clientMessage[2].equals("rank");
-                        String[] themeWord = getRandomThemeWord();
-                        String theme = themeWord[0];
-                        String word = themeWord[1];
-
-                        if (action.equals("create")) {
-                            Game game = new Game(12346, "localhost", activeUsers, ranked, theme, word);
-                            Thread.ofVirtual().start(game::run);
-                            writeMessage(printWriter, "CON"+":"+game.getPort()+":"+game.getHost());
-
-                        }
-                        return false;
-                        */
                         if (!validateRequest(clientMessage[3])) {
                             writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
                             break;
@@ -271,9 +269,9 @@ public class Server {
                             System.out.println("Game created!");
                             result = true;
                         } else result = clientSearchGame(user, clientMessage[2].equals("rank"), 50);
-
+                        this.inGame = result;
                         writeMessage(printWriter, result ? "SUC" : "ERR:No games found!");
-                        break;
+                        return !result;
                     default:
                         System.out.println("Unknown request received!: " + messageKey);
                         writeMessage(printWriter, "ERR:Unknown request!");
@@ -402,5 +400,45 @@ public class Server {
         }
         return false;
     }
+    }
+
+    private class QueueDispacher implements Runnable {
+        private boolean ranked;
+        public QueueDispacher(boolean ranked){
+            this.ranked = ranked;
+        }
+        @Override
+        public void run() {
+            System.out.println("Queue dispatcher started!");
+            while (true) {
+                var localUserQueues = new ArrayList<>(userQueues);
+                for (UserQueue userQueue : localUserQueues) {
+                    if (userQueue.ended) {
+                        String[] themeWord = getRandomThemeWord();
+                        String theme = themeWord[0];
+                        String word = themeWord[1];
+                        Game game = new Game(12346, "localhost", activeUsers, ranked, theme, word);
+                        Thread.ofVirtual().start(game::run);
+
+                        for (User user : userQueue.queue) {
+                            PrintWriter printWriter = null;
+                            try {
+                                printWriter = new PrintWriter(user.getSocket().getOutputStream());
+                                writeMessage(printWriter, "CON" + ":" + game.getPort() + ":" + game.getHost());
+                            } catch (IOException e) {
+                                System.out.println("SERVER: Error while writing to client: " + e.getMessage());
+                            }
+                        }
+
+                        try {
+                            queueLock.lock();
+                            userQueues.remove(userQueue);
+                        } finally {
+                            queueLock.unlock();
+                        }
+                    }
+                }
+            }
+        }
     }
 }

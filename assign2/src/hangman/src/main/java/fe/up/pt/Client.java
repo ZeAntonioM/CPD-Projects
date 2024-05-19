@@ -1,6 +1,9 @@
 package fe.up.pt;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 public class Client {
@@ -49,6 +52,7 @@ public class Client {
         return bufferedReader.readLine();
     }
 
+    //TODO: Refactor this method to make sense, super spaguetti
     private void showMessageToClient(String message){
         String[] data = message.split(":");
         if (data[0].equals("ERR")){
@@ -73,6 +77,8 @@ public class Client {
                 case "end" -> System.out.println("Game ended!\n");
                 default -> System.out.println("Invalid option!\n");
             }
+        } else if (data[0].equals("SUC")) {
+            System.out.println("Success!\n");
         }
         else {
             System.out.println("Unknown response received!: " + data[0] + "\n");
@@ -123,6 +129,7 @@ public class Client {
                         break;
                 }
             }
+            //TODO: perceber a logica do game loop e implementar um menu de jeito actually funcional
             while (client.inGame){
                 // GAME LOOP GUI
             }
@@ -198,9 +205,20 @@ public class Client {
             else if (response.equals("Invalid option!")) System.out.println(response);
             else {
                 client.writeMessage(response);
-                client.showMessageToClient(readMessage());
-                client.showMessageToClient(readMessage());
-                return;
+                client.showMessageToClient(client.readMessage());
+                if (client.socket.isClosed()) {
+                    System.out.println("Connection closed!");
+                    return;
+                }
+
+                while(true) {
+                    String msg = client.readMessage();
+                    if (client.socket.isClosed()) {
+                        System.out.println("Connection closed!");
+                        return;
+                    }
+                    if (msg != null) client.showMessageToClient(msg);
+                }
             }
         }
     }
