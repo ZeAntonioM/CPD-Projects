@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class Client {
 
@@ -40,7 +40,6 @@ public class Client {
     }
 
     private void writeMessage(String message) throws IOException {
-        int retryCount = 0;
         String messageKey = message.split(":")[0];
         if (messageKey.equals("LGN") || messageKey.equals("REG") || messageKey.equals("EXT")){
             this.setSessionToken(null);
@@ -81,26 +80,52 @@ public class Client {
             switch (data[1]) {
                 case "wait" :
                     System.out.println("Waiting for players...\n");
+                    this.state = "waitingForPlayers";
                     break;
                 case "start":
                     System.out.println("Game started!\n");
+                    this.state = "game";
                     break;
                 case "end":
                     System.out.println("Game ended!\n");
                     this.inGame = false;
                     this.state = "mainMenu";
                     break;
+                case "turn":
+                    playerTurn(data[2]);
+                    break;
                 default:
                     System.out.println("Invalid option!\n");
                     break;
             }
+
         } else if (data[0].equals("SUC")) {
             System.out.println("Success!\n");
-        } else if (data[0].equals("ACK")) {
-            System.out.println("ACK received!\n");
-        }
-        else {
+        } else {
             System.out.println("Unknown response received!: " + data[0] + "\n");
+        }
+    }
+
+    private void playerTurn(String token) {
+        if (token.equals(this.getSessionToken())) {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("It's your turn!\n");
+            System.out.println("Enter your guess: ");
+            String guess = scanner.nextLine();
+
+            try {
+                writeMessage("GGS:" + guess);
+            } catch (IOException e) {
+                System.out.println("Error while sending guess: " + e.getMessage());
+            }
+        }
+        else{
+            System.out.println("It's the other player's turn!\n");
+            try {
+                writeMessage("GWA");
+            } catch (IOException e) {
+                System.out.println("Error while waiting for other player: " + e.getMessage());
+            }
         }
     }
 
@@ -147,8 +172,7 @@ public class Client {
                             client.showMessageToClient(client.readMessage(), client.state);
                             break;
                         case "game":
-
-
+                            client.showMessageToClient(client.readMessage(), client.state);
                             break;
                         default:
                             System.out.println("Invalid state!");

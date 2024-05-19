@@ -7,6 +7,7 @@ import java.net.SocketTimeoutException;
 import java.sql.Time;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.CountDownLatch;
@@ -34,6 +35,7 @@ public class Game {
     private String guessedWord;
     private HashMap<String, User> gameUsers;
     private List<Integer> ranks = new ArrayList<Integer>();
+    private CyclicBarrier barrier;
 
     public Game(int port, String host, HashMap<String, User> gameUsers, boolean ranked, String theme, String word) {
 
@@ -77,7 +79,7 @@ public class Game {
     private void sendGameMessage(String message, User player) {
 
         try {
-            message = "GAM:" + message + ":" + player.getActiveToken();
+            message = "GAM:" + message;
             writeMessage(player.getSocket(), message);
         }
         catch (IOException e) {
@@ -144,27 +146,33 @@ public class Game {
 
         shuffle(this.players);
 
+        int i = 0;
         for (User player : this.players) {
             this.ranks.add(player.getRank());
+            i++;
         }
 
+        this.barrier = new CyclicBarrier(i + 1);
         sendGameMessageAll("start:" + this.theme + ":" + this.guessedWord);
 
     }
 
     private void gameLoop() throws IOException {
+        int i = 0;
         while (this.running) {
-            for (User player : this.players) {
-                sendGameMessage("yourTurn", player);
-                treatGuess(readMessage(player.getSocket())[1], player);
+            User player = this.players.get(i);
+            sendGameMessageAll("turn:" + player.getActiveToken());
+            try {
+                barrier.await();
+            } catch (Exception e) {
+                System.out.println("Error on barrier: " + e.getMessage());
             }
+            i = (i + 1) % this.players.size();
         }
     }
 
     private void end() {
-
         sendGameMessageAll("end");
-
     }
 
     private void treatGuess(String guess, User player) {
@@ -253,6 +261,18 @@ public class Game {
                         break;
                     case "GGS":
                         treatGuess(clientMessage[1], gameUsers.get(clientMessage[2]));
+                        try {
+                            barrier.await();
+                        } catch (Exception e) {
+                            System.out.println("Error on barrier: " + e.getMessage());
+                        }
+                        break;
+                    case "GWA":
+                        try {
+                            barrier.await();
+                        } catch (Exception e) {
+                            System.out.println("Error on barrier: " + e.getMessage());
+                        }
                         break;
                     default:
                         System.out.println("GAME: Unknown request received!: " + messageKey);
