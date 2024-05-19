@@ -5,16 +5,18 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class Client {
 
-    private final String address;
-    private final int port;
+    private String address;
+    private int port;
     private Socket socket;
     private PrintWriter printWriter;
     private BufferedReader bufferedReader;
     private String sessionToken;
     private boolean inGame = false;
+    public String state = "loginMenu"; // "mainMenu", "gameMenu", "game"
 
     public Client(String address, int port) throws IOException{
         this.address = address;
@@ -37,48 +39,95 @@ public class Client {
     }
 
     private void writeMessage(String message) throws IOException {
+        int retryCount = 0;
         String messageKey = message.split(":")[0];
         if (messageKey.equals("LGN") || messageKey.equals("REG") || messageKey.equals("EXT")){
             this.setSessionToken(null);
         }
+        while (retryCount < 3) { // Retry up to 3 times
+            String token = getSessionToken() != null ? ":" + getSessionToken() : "";
 
-        String token = getSessionToken() != null ? ":" + getSessionToken() : "";
-        printWriter.println(message + token);
-        System.out.println("Sent: " + message + token);
-        printWriter.flush();
+            try {
+                // Set a timeout of 5 seconds for receiving the ACK
+                socket.setSoTimeout(5000);
+                printWriter.println(message + token);
+                printWriter.flush();
+
+                // Wait for ACK
+                String ack = readMessage();
+                if ("ACK".equals(ack) || "SUC".equals(ack)) {
+                    // ACK received, break the loop
+                    System.out.println(ack + " received!\n");
+                    socket.setSoTimeout(0);
+                    break;
+                } else {
+                    // ACK not received, increment retry count and resend message
+                    retryCount++;
+                }
+            } catch (SocketTimeoutException e) {
+                // ACK not received within the timeout period, increment retry count and resend message
+                retryCount++;
+            }
+        }
+
+        if (retryCount == 3) {
+            throw new IOException("No ACK received after sending message: " + message);
+        }
     }
 
     private String readMessage() throws IOException {
-        return bufferedReader.readLine();
+        String message = bufferedReader.readLine();
+
+        if (message.equals("ACK")) return "ACK";
+
+        // Send ACK
+        if (message.split(":")[0].equals("CON")) System.out.println("HEREEEEEEE");
+        printWriter.println("ACK");
+        printWriter.flush();
+
+        return message;
     }
 
     //TODO: Refactor this method to make sense, super spaguetti
-    private void showMessageToClient(String message){
+    private void showMessageToClient(String message, String state){
         String[] data = message.split(":");
         if (data[0].equals("ERR")){
             System.out.println("Error: " + data[1] + "\n");
+            this.state = state;
         }
         else if (data[0].equals("SUC") && data.length > 1) {
             System.out.println("Success!\n");
             this.setSessionToken(data[1]);
-            try {
-                mainMenu(this);
-            } catch (IOException e) {
-                System.out.println("Error: " + e.getMessage());
-            }
+            this.state = "mainMenu";
+
         } else if (data[0].equals("CON")) {
-            String host = data[2];
-            int port = Integer.parseInt(data[1]);
-            connectToGame(host, port);
+            System.out.println("Connected to game!\n");
+            this.address = data[2];
+            this.port = Integer.parseInt(data[1]);
+            this.state = "connectToGame";
+
+
         } else if (data[0].equals("GAM")) {
             switch (data[1]) {
-                case "wait" -> System.out.println("Waiting for players...\n");
-                case "start" -> System.out.println("Game started!\n");
-                case "end" -> System.out.println("Game ended!\n");
-                default -> System.out.println("Invalid option!\n");
+                case "wait" :
+                    System.out.println("Waiting for players...\n");
+                    break;
+                case "start":
+                    System.out.println("Game started!\n");
+                    break;
+                case "end":
+                    System.out.println("Game ended!\n");
+                    this.inGame = false;
+                    this.state = "mainMenu";
+                    break;
+                default:
+                    System.out.println("Invalid option!\n");
+                    break;
             }
         } else if (data[0].equals("SUC")) {
             System.out.println("Success!\n");
+        } else if (data[0].equals("ACK")) {
+            System.out.println("ACK received!\n");
         }
         else {
             System.out.println("Unknown response received!: " + data[0] + "\n");
@@ -95,43 +144,35 @@ public class Client {
 
             // Client CLI
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            String message;
 
-            while (!client.inGame) {
-                System.out.println("Login [1], Register [2] or Exit [3]?");
-                message = reader.readLine();
-                String username;
-                String password;
-                switch (message) {
-                    case "1":
-                        System.out.println("Enter username: ");
-                        username = reader.readLine();
-                        System.out.println("Enter password: ");
-                        password = reader.readLine();
-                        client.writeMessage("LGN:" + username + ":" + password);
-                        client.showMessageToClient(client.readMessage());
-                        break;
-                    case "2":
-                        System.out.println("Enter username: ");
-                        username = reader.readLine();
-                        System.out.println("Enter password: ");
-                        password = reader.readLine();
-                        client.writeMessage("REG:" + username + ":" + password);
-                        client.showMessageToClient(client.readMessage());
-                        break;
-                    case "3":
-                        client.writeMessage("EXT");
-                        client.showMessageToClient(client.readMessage());
-                        client.getSocket().close();
-                        return;
-                    default:
-                        System.out.println("Invalid option!");
-                        break;
+            while (true) {
+                if (!client.inGame) {
+                    switch (client.state) {
+                        case "loginMenu":
+                            client.loginMenu(reader);
+                            break;
+                        case "mainMenu":
+                            client.mainMenu(reader);
+                            break;
+                        case "newGame":
+                            client.gameMenu(true, reader);
+                            break;
+                        case "joinGame":
+                            client.gameMenu(false, reader);
+                            break;
+                        case "connectToGame":
+                            client.showMessageToClient(client.readMessage(), client.state);
+                            client.connectToGame(client.address, client.port);
+                            break;
+                        case "close":
+                            return;
+                        default:
+                            System.out.println("Invalid state!");
+                            break;
+                    }
+                } else {
+                    //TODO: implementar game loop
                 }
-            }
-            //TODO: perceber a logica do game loop e implementar um menu de jeito actually funcional
-            while (client.inGame){
-                // GAME LOOP GUI
             }
 
         } catch (IOException e) {
@@ -141,6 +182,51 @@ public class Client {
         }
     }
 
+    private void loginMenu(BufferedReader reader) throws IOException {
+        Client client = this;
+        System.out.println("Login [1], Register [2] or Exit [3]?");
+        String message = reader.readLine();
+        String username;
+        String password;
+        String prevState;
+        switch (message) {
+            case "1":
+                System.out.println("Enter username: ");
+                username = reader.readLine();
+                System.out.println("Enter password: ");
+                password = reader.readLine();
+
+                prevState = client.state;
+                client.state = "mainMenu";
+
+                client.writeMessage("LGN:" + username + ":" + password);
+                client.showMessageToClient(client.readMessage(), prevState);
+                return;
+            case "2":
+                System.out.println("Enter username: ");
+                username = reader.readLine();
+                System.out.println("Enter password: ");
+                password = reader.readLine();
+
+                prevState = client.state;
+                client.state = "mainMenu";
+
+                client.writeMessage("REG:" + username + ":" + password);
+                client.showMessageToClient(client.readMessage(), prevState);
+                return;
+            case "3":
+                prevState = client.state;
+                client.state = "close";
+
+                client.writeMessage("EXT");
+                client.showMessageToClient(client.readMessage(), prevState);
+                client.getSocket().close();
+                return;
+            default:
+                System.out.println("Invalid option!");
+                break;
+        }
+    }
     public void connectToGame(String host, int port) {
         try {
             // Close the old socket
@@ -153,7 +239,7 @@ public class Client {
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             writeMessage("GIN:"+getSessionToken());
-            showMessageToClient(readMessage());
+            showMessageToClient(readMessage(), state);
             inGame = true;
 
         } catch (IOException e) {
@@ -163,24 +249,26 @@ public class Client {
     }
 
 
-    public void mainMenu(Client client) throws IOException{
+    public void mainMenu(BufferedReader reader) throws IOException {
         printWriter = new PrintWriter(socket.getOutputStream(), true);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String message;
+        Client client = this;
 
         while (!inGame) {
             System.out.println("Start a new Game [1], Join a Game [2] or Log Out [3]?");
             message = reader.readLine();
             switch (message) {
                 case "1":
-                    gameMenu(true, client);
-                    break;
+                    client.state = "newGame";
+                    return;
                 case "2":
-                    gameMenu(false, client);
-                    break;
+                    client.state = "joinGame";
+                    return;
                 case "3":
+                    String prevState = client.state;
+                    client.state = "loginMenu";
                     client.writeMessage("LGO");
-                    client.showMessageToClient(client.readMessage());
+                    client.showMessageToClient(client.readMessage(), prevState);
                     return;
                 default:
                     System.out.println("Invalid option!");
@@ -190,35 +278,30 @@ public class Client {
     }
 
 
-    public void gameMenu(boolean isNewGame, Client client) throws IOException {
+    public void gameMenu(boolean isNewGame, BufferedReader reader) throws IOException {
         printWriter = new PrintWriter(socket.getOutputStream(), true);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String message;
+        Client client = this;
         while (true) {
             System.out.println("Ranked [1], Normal [2] or Back [3]?");
             message = reader.readLine();
             String response = message.equals("1") ? (isNewGame ? "GAM:create:rank" : "GAM:join:rank")
                     : message.equals("2") ? (isNewGame ? "GAM:create:normal" : "GAM:join:normal")
                     : message.equals("3") ? null : "Invalid option!";
-            System.out.println(response);
-            if (response == null) return;
-            else if (response.equals("Invalid option!")) System.out.println(response);
-            else {
-                client.writeMessage(response);
-                client.showMessageToClient(client.readMessage());
-                if (client.socket.isClosed()) {
-                    System.out.println("Connection closed!");
-                    return;
-                }
 
-                while(true) {
-                    String msg = client.readMessage();
-                    if (client.socket.isClosed()) {
-                        System.out.println("Connection closed!");
-                        return;
-                    }
-                    if (msg != null) client.showMessageToClient(msg);
-                }
+            switch (response){
+                case null:
+                    client.state = "mainMenu";
+                    return;
+                case "Invalid option!":
+                    System.out.println(response);
+                    break;
+                default:
+                    String prevState = client.state;
+                    client.state = "connectToGame";
+                    client.writeMessage(response);
+                    client.showMessageToClient(client.readMessage(), prevState);
+                    return;
             }
         }
     }

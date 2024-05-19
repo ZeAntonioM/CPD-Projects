@@ -5,6 +5,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -46,17 +47,51 @@ public class Server {
         }
     }
 
+    public void writeMessage(Socket clientSocket, String message) throws IOException {
+        int retryCount = 0;
+        PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
+        while (retryCount < 3) { // Retry up to 3 times
 
+            try {
+                // Set a timeout of 5 seconds for receiving the ACK
+                clientSocket.setSoTimeout(5000);
+                printWriter.println(message);
+                printWriter.flush();
 
-    public void writeMessage(PrintWriter printWriter, String message) throws IOException {
-        printWriter.println(message);
+                // Wait for ACK
+                String[] ack = readMessage(clientSocket);
+                if ("ACK".equals(ack[0])){
+                    System.out.println("ACK received!");
+                    clientSocket.setSoTimeout(0);
+                    // ACK received, break the loop
+                    break;
+                } else {
+                    // ACK not received, increment retry count and resend message
+                    retryCount++;
+                }
+            } catch (SocketTimeoutException e) {
+                // ACK not received within the timeout period, increment retry count and resend message
+                retryCount++;
+            }
+        }
+
+        if (retryCount == 3) {
+            throw new IOException("No ACK received after sending message: " + message);
+        }
+    }
+
+    public String[] readMessage(Socket clientSocket) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
+        String message = bufferedReader.readLine();
+
+        if (message.equals("ACK")) return new String[] {"ACK"};
+        // Send ACK
+        printWriter.println("ACK");
         printWriter.flush();
-    }
 
-    public String[] readMessage(BufferedReader bufferedReader) throws IOException {
-        return bufferedReader.readLine().split(":");
+        return message.split(":");
     }
-
     private HashMap<String, User> readUsers() {
         HashMap<String, User> users = new HashMap<>();
         String line = "";
@@ -112,6 +147,7 @@ public class Server {
 
         return wordList;
     }
+
     private String[] getRandomThemeWord() {
         List<String> keys = Collections.list(dictionaryWords.keys());
         Random random = new Random();
@@ -189,9 +225,9 @@ public class Server {
         }
     }
 
-
     private class ClientHandler implements Runnable {
         private boolean inGame = false;
+        private String state = "mainMenu"; //mainMenu, gameMenu
         @Override
         public void run() {
             while (true) {
@@ -217,67 +253,78 @@ public class Server {
 
         private boolean handleClientData(Socket clientSocket) {
             try {
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
-
-
-                String[] clientMessage = readMessage(bufferedReader);
+                String[] clientMessage = readMessage(clientSocket);
                 String messageKey = clientMessage[0];
                 StringBuilder token = new StringBuilder();
                 User client = null;
                 System.out.println("Received: " + Arrays.toString(clientMessage));
 
-                switch (messageKey) {
-                    case "LGN":
-                        client = clientLogin(clientMessage[1], clientMessage[2], clientSocket, token);
-                        if (client != null) {
-                            writeMessage(printWriter, "SUC:" + token);
-                        } else {
-                            writeMessage(printWriter, "ERR:Invalid credentials!");
+                switch(state){
+                    case "mainMenu":
+                        switch (messageKey) {
+                            case "LGN":
+                                client = clientLogin(clientMessage[1], clientMessage[2], clientSocket, token);
+                                if (client != null) {
+                                    writeMessage(clientSocket, "SUC:" + token);
+                                    state = "gameMenu";
+                                } else {
+                                    writeMessage(clientSocket, "ERR:Invalid credentials!");
+                                }
+                                break;
+                            case "REG":
+                                client = clientRegister(clientMessage[1], clientMessage[2], clientSocket, token);
+                                if (client != null) {
+                                    writeMessage(clientSocket, "SUC:" + token);
+                                    state = "gameMenu";
+                                } else {
+                                    writeMessage(clientSocket, "ERR:Username already exists!");
+                                }
+                                break;
+                            case "EXT":
+                                writeMessage(clientSocket, "SUC");
+                                return false;
+                            default:
+                                System.out.println("Unknown request received!: " + messageKey);
+                                writeMessage(clientSocket, "ERR:Unknown request!");
+                                break;
                         }
                         break;
-                    case "REG":
-                        client = clientRegister(clientMessage[1], clientMessage[2], clientSocket, token);
-                        if (client != null) {
-                            writeMessage(printWriter, "SUC:" + token);
-                        } else {
-                            writeMessage(printWriter, "ERR:Username already exists!");
-                        }
-                        break;
-                    case "EXT":
-                        writeMessage(printWriter, "SUC");
-                        return false;
-                    case "LGO":
-                        if (clientLogout(clientMessage[1])) {
-                            writeMessage(printWriter, "SUC");
-                        } else {
-                            writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
-                        }
-                        break;
-                    case "GAM":
-                        if (!validateRequest(clientMessage[3])) {
-                            writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
-                            break;
-                        }
+                    case "gameMenu":
+                        switch(messageKey){
+                            case "LGO":
+                                if (clientLogout(clientMessage[1])) {
+                                    writeMessage(clientSocket, "SUC");
+                                    state = "mainMenu";
+                                } else {
+                                    writeMessage(clientSocket, "ERR:Invalid token or user is not logged in!");
+                                }
+                                break;
+                            case "GAM":
+                                if (!validateRequest(clientMessage[3])) {
+                                    writeMessage(clientSocket, "ERR:Invalid token or user is not logged in!");
+                                    break;
+                                }
 
-                        User user = getUserFromToken(clientMessage[3]);
-                        boolean result;
+                                User user = getUserFromToken(clientMessage[3]);
+                                boolean result;
 
-                        if (clientMessage[1].equals("create")) {
-                            System.out.println("Creating game!");
-                            createQueue(user, clientMessage[2].equals("rank"));
-                            System.out.println("Game created!");
-                            result = true;
-                        } else result = clientSearchGame(user, clientMessage[2].equals("rank"), 50);
-                        this.inGame = result;
-                        writeMessage(printWriter, result ? "SUC" : "ERR:No games found!");
-                        return !result;
+                                if (clientMessage[1].equals("create")) {
+                                    System.out.println("Creating game!");
+                                    createQueue(user, clientMessage[2].equals("rank"));
+                                    System.out.println("Game created!");
+                                    result = true;
+                                } else result = clientSearchGame(user, clientMessage[2].equals("rank"), 50);
+                                this.inGame = result;
+                                writeMessage(clientSocket, result ? "SUC" : "ERR:No games found!");
+                                return !result;
+                            default:
+                                System.out.println("Unknown request received!: " + messageKey);
+                                writeMessage(clientSocket, "ERR:Unknown request!");
+                                break;
+                        }
                     default:
-                        System.out.println("Unknown request received!: " + messageKey);
-                        writeMessage(printWriter, "ERR:Unknown request!");
                         break;
                 }
-
             } catch (IOException e) {
                 System.out.println("Error while handling client data: " + e.getMessage());
                 return false;
@@ -363,37 +410,51 @@ public class Server {
         }
     private boolean clientSearchGame(User user, boolean ranked, int range) {
         if (ranked) {
+            range = range-50;
             long endTime = System.currentTimeMillis() + 120000; //two minutes
-            long interval = System.currentTimeMillis() + 10000; //ten seconds
+            long interval = System.currentTimeMillis(); //ten seconds
 
             while (System.currentTimeMillis() < endTime) {
                 var copyOfUserQueues = new ArrayList<>(userQueues);
                 sortUserQueues(copyOfUserQueues, user.getRank());
-                for (UserQueue userQueue : copyOfUserQueues) {
-                    int difference = Math.abs(userQueue.getRank() - user.getRank());
-                    if (difference > range) break;
-
-                    if (userQueue.isRanked()) {
-                        return joinQueue(user, userQueue);
-                    }
-
-                }
-
-                if (System.currentTimeMillis() > interval){
+                if (System.currentTimeMillis() > interval) {
                     range += 50;
                     interval = System.currentTimeMillis() + 10000;
                     System.out.println("Range: " + range);
+
+                    try{
+                        queueLock.lock();
+                        for (UserQueue userQueue : copyOfUserQueues) {
+                            if (userQueue.isRanked() && Math.abs(userQueue.getRank() - user.getRank()) <= range){
+                                return joinQueue(user, userQueue);
+                            }
+                        }
+                    } finally {
+                        queueLock.unlock();
+                    }
                 }
+
 
                 copyOfUserQueues = null; //setting for garbage collection
             }
         } else {
             long endTime = System.currentTimeMillis() + 120000; //two minutes
+            long interval = System.currentTimeMillis();
 
             while (System.currentTimeMillis() < endTime) {
-                for (UserQueue userQueue : userQueues) {
-                    if (!userQueue.isRanked()) {
-                        return joinQueue(user, userQueue);
+                if (System.currentTimeMillis() > interval) {
+                    range += 50;
+                    interval = System.currentTimeMillis() + 1000;
+                    System.out.println("Range: " + range);
+                    try{
+                        queueLock.lock();
+                        for (UserQueue userQueue : userQueues) {
+                            if (!userQueue.isRanked()) {
+                                return joinQueue(user, userQueue);
+                            }
+                        }
+                    } finally {
+                        queueLock.unlock();
                     }
                 }
             }
@@ -421,10 +482,8 @@ public class Server {
                         Thread.ofVirtual().start(game::run);
 
                         for (User user : userQueue.queue) {
-                            PrintWriter printWriter = null;
                             try {
-                                printWriter = new PrintWriter(user.getSocket().getOutputStream());
-                                writeMessage(printWriter, "CON" + ":" + game.getPort() + ":" + game.getHost());
+                                writeMessage(user.getSocket(), "CON" + ":" + game.getPort() + ":" + game.getHost());
                             } catch (IOException e) {
                                 System.out.println("SERVER: Error while writing to client: " + e.getMessage());
                             }

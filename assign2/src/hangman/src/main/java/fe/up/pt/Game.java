@@ -92,8 +92,7 @@ public class Game {
 
     private void sendGameMessage(User player, String tokens) {
         try {
-            PrintWriter printWriter = new PrintWriter(player.getSocket().getOutputStream(), true);
-            writeMessage(printWriter, "GAM" + ":" + tokens + ":" + player.getActiveToken());
+            writeMessage(player.getSocket(), "GAM" + ":" + tokens + ":" + player.getActiveToken());
         } catch (IOException e) {
             System.out.println("Error sending game message: " + e.getMessage());
         }
@@ -199,16 +198,54 @@ public class Game {
         }
     }
 
-    public void writeMessage(PrintWriter printWriter, String message) throws IOException {
-        printWriter.println(message);
-        printWriter.flush();
+    public void writeMessage(Socket clientSocket, String message) throws IOException {
+        int retryCount = 0;
+        PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
+        while (retryCount < 3) { // Retry up to 3 times
+
+            try {
+                // Set a timeout of 5 seconds for receiving the ACK
+                clientSocket.setSoTimeout(5000);
+                printWriter.println(message);
+                printWriter.flush();
+
+                // Wait for ACK
+                String[] ack = readMessage(clientSocket);
+                if ("ACK".equals(ack[0])){
+                    System.out.println("ACK received!");
+                    clientSocket.setSoTimeout(0);
+                    // ACK received, break the loop
+                    break;
+                } else {
+                    // ACK not received, increment retry count and resend message
+                    retryCount++;
+                }
+            } catch (SocketTimeoutException e) {
+                // ACK not received within the timeout period, increment retry count and resend message
+                retryCount++;
+            }
+        }
+
+        if (retryCount == 3) {
+            throw new IOException("No ACK received after sending message: " + message);
+        }
     }
 
-    public String[] readMessage(BufferedReader bufferedReader) throws IOException {
-        return bufferedReader.readLine().split(":");
+    public String[] readMessage(Socket clientSocket) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
+        String message = bufferedReader.readLine();
+
+        if (message.equals("ACK")) return new String[] {"ACK"};
+        // Send ACK
+        printWriter.println("ACK");
+        printWriter.flush();
+
+        return message.split(":");
     }
 
     private class ClientHandler implements Runnable {
+        private String state = "wait"; // wait, notMyTurn, myTurn, end
         @Override
         public void run() {
             while (true) {
@@ -229,10 +266,7 @@ public class Game {
         private boolean handleClientData(Socket clientSocket) {
 
             try {
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
-
-                String[] clientMessage = readMessage(bufferedReader);
+                String[] clientMessage = readMessage(clientSocket);
                 String messageKey = clientMessage[0];
 
                 switch (messageKey) {
@@ -240,14 +274,14 @@ public class Game {
                         players.add(gameUsers.get(clientMessage[1]));
                         gameUsers.get(clientMessage[1]).setSocket(clientSocket);
                         System.out.println("Player " + gameUsers.get(clientMessage[1]).getUsername() + " joined the game!");
-                        writeMessage(printWriter, "GAM:wait");
+                        writeMessage(clientSocket, "GAM:wait");
                         break;
                     case "GGS":
                         receiveGuess(clientMessage[1], gameUsers.get(clientMessage[2]));
                         break;
                     default:
-                        System.out.println("Unknown request received!: " + messageKey);
-                        writeMessage(printWriter, "ERR:Unknown request!");
+                        System.out.println("GAME: Unknown request received!: " + messageKey);
+                        writeMessage(clientSocket, "ERR:Unknown request!");
                         break;
                 }
 
@@ -257,13 +291,5 @@ public class Game {
             }
             return true;
         }
-
-
-        private boolean isEmpty() {
-            return queueHead == queueTail;
-        }
-
     }
-
-
 }
