@@ -197,7 +197,7 @@ public class Client {
             else {
                 client.writeMessage(response);
                 client.showMessageToClient(readMessage());
-
+                client.showMessageToClient(readMessage());
                 return;
             }
         }

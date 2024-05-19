@@ -253,6 +253,7 @@ public class Game {
                 switch (messageKey) {
                     case "GIN":
                         players.add(gameUsers.get(clientMessage[1]));
+                        gameUsers.get(clientMessage[1]).setSocket(clientSocket);
                         System.out.println("Player " + gameUsers.get(clientMessage[1]).getUsername() + " joined the game!");
                         writeMessage(printWriter, "GAM:wait");
                         break;
