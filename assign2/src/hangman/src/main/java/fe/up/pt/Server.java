@@ -21,6 +21,7 @@ public class Server {
     private List<Game> activeGames = new ArrayList<>();
     private int gameID = 0;
     private List<UserQueue> userQueues = new ArrayList<>();
+    private int basePort = 12346;
     public Server(int port, String host) {
         this.port = port;
         this.host = host;
@@ -129,9 +130,10 @@ public class Server {
                 }
                 // use comma as separator
                 String[] data = line.split(",");
-                String theme = data[0];
-                String word = data[1];
+                String theme = data[0].toLowerCase();
+                String word = data[1].toLowerCase();
                 List<String> words = wordList.get(theme);
+
 
                 if (words == null) {
                     words = new ArrayList<>();
@@ -142,6 +144,7 @@ public class Server {
                 }
 
             }
+
         } catch (IOException ignored) {
         }
 
@@ -365,7 +368,7 @@ public class Server {
                 User newUser = new User(username, hashedPassword, token, 1000, userSocket);
                 newUser.addToken(token);
                 // Open the file
-                FileWriter fileWriter = new FileWriter("src\\main\\java\\fe\\up\\pt\\users.csv", true);
+                FileWriter fileWriter = new FileWriter("src"+File.separator+"main"+File.separator+"java"+File.separator+"fe"+File.separator+"up"+File.separator+"pt"+File.separator+"users.csv", true);
                 BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
                 bufferedWriter.write(newUser.getUsername() + "," + newUser.getPassword() + "," + newUser.getRank() + "\n");
                 bufferedWriter.close();
@@ -463,6 +466,14 @@ public class Server {
     }
     }
 
+    public HashMap<String, User> getUserTokens() {
+        HashMap<String, User> userTokens = new HashMap<String, User>();
+        for (User user : this.activeUsers.values()) {
+            userTokens.put(user.getActiveToken(), user);
+        }
+        return userTokens;
+    }
+
     private class QueueDispacher implements Runnable {
         private boolean ranked;
         public QueueDispacher(boolean ranked){
@@ -478,7 +489,8 @@ public class Server {
                         String[] themeWord = getRandomThemeWord();
                         String theme = themeWord[0];
                         String word = themeWord[1];
-                        Game game = new Game(12346, "localhost", activeUsers, ranked, theme, word);
+                        HashMap<String, User> tokenUsers = getUserTokens();
+                        Game game = new Game(basePort++, "localhost", tokenUsers, ranked, theme, word);
                         Thread.ofVirtual().start(game::run);
 
                         for (User user : userQueue.queue) {

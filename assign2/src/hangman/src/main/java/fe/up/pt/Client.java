@@ -134,6 +134,7 @@ public class Client {
         }
     }
 
+
     public static void main(String[] args) throws IOException{
         String serverAddress = "localhost"; // Replace with server IP or hostname
         int port = 12345; // Replace with server port
@@ -239,7 +240,6 @@ public class Client {
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             writeMessage("GIN:"+getSessionToken());
-            showMessageToClient(readMessage(), state);
             inGame = true;
 
         } catch (IOException e) {
@@ -247,6 +247,7 @@ public class Client {
             System.out.println("Error while connecting to the game: " + e.getMessage());
         }
     }
+
 
 
     public void mainMenu(BufferedReader reader) throws IOException {
@@ -307,3 +308,5 @@ public class Client {
     }
 
 }
+
+
