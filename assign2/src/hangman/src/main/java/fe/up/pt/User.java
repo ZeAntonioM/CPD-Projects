@@ -1,14 +1,17 @@
 package fe.up.pt;
 
-import java.lang.reflect.Array;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class User {
     private final String username;
     private final String password;
     private String[] tokens = new String[10];
     private int rank;
+
+    private ReentrantLock lock = new ReentrantLock();
 
     private Socket socket;
 
@@ -54,20 +57,27 @@ public class User {
         return false;
     }
 
-    public synchronized boolean setActiveToken (String token){
-        boolean ret = false;
-        String[] newTokens = Arrays.copyOf(this.tokens, this.tokens.length);
-        for (int i = 0; i < newTokens.length; i++) {
-            if (newTokens[i] != null && newTokens[i].equals(token)) {
-                newTokens[0] = token;
-                ret = true;
+    public boolean setActiveToken(String token) {
+        try {
+            lock.lock();
+
+            boolean ret = false;
+            String[] newTokens = Arrays.copyOf(this.tokens, this.tokens.length);
+            for (int i = 0; i < newTokens.length; i++) {
+                if (newTokens[i] != null && newTokens[i].equals(token)) {
+                    newTokens[0] = token;
+                    if (i != 0) newTokens[i] = null;
+                    ret = true;
+                }
+                else newTokens[i] = null;
             }
-            newTokens[i] = null;
+            if (ret) {
+                this.tokens = newTokens;
+            }
+            return ret;
+        } finally {
+            lock.unlock();
         }
-        if (ret) {
-            this.tokens = newTokens;
-        }
-        return ret;
     }
 
     public void setSocket(Socket userSocket) {

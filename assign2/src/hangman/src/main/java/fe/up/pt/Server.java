@@ -1,5 +1,7 @@
 package fe.up.pt;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -8,16 +10,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.*;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class Server {
-    private final ReentrantLock queueLock = new ReentrantLock();
-    private final Condition notEmpty = queueLock.newCondition();
-    private final Socket[] clientQueue = new Socket[10];
-    private int queueHead = 0;
-    private int queueTail = 0;
+    private final Queue<Socket> clientQueue = new Queue<>();
+    private final ReentrantLock accountLock = new ReentrantLock();
     private final String host;
     private int port = 12345;
     private HashMap<String, User> allUsers = readUsers();
@@ -25,7 +23,7 @@ public class Server {
     private final Dictionary<String, List<String>> dictionaryWords = readWordList();
     private List<Game> activeGames = new ArrayList<>();
     private int gameID = 0;
-
+    private List<UserQueue> userQueues = new ArrayList<>();
     public Server(int port, String host) {
         this.port = port;
         this.host = host;
@@ -34,7 +32,6 @@ public class Server {
     public static void main(String[] args) throws IOException {
         Server server = new Server(12345, "localhost");
         server.start();
-
     }
 
     public void start() throws IOException {
@@ -47,15 +44,8 @@ public class Server {
             Socket clientSocket = serverSocket.accept();
 
             // Acquire lock and add client to queue
-            queueLock.lock();
-            try {
-                clientQueue[queueTail] = clientSocket;
-                queueTail = (queueTail + 1) % clientQueue.length; // Wrap-around logic
-                Thread.ofVirtual().start(new ClientHandler());
-                notEmpty.signal(); // Signal the waiting client handling thread
-            } finally {
-                queueLock.unlock();
-            }
+            clientQueue.enqueue(clientSocket);
+            Thread.ofVirtual().start(new ClientHandler());
         }
     }
 
@@ -141,12 +131,53 @@ public class Server {
         return new String[] {randomKey, randomValue};
     }
 
-    private synchronized boolean validateRequest(String token) {
-        boolean valid = false;
-        for (User user : activeUsers.values()) {
-            valid = valid || user.setActiveToken(token);
+    private boolean validateRequest(String token) {
+        try {
+            accountLock.lock();
+            boolean valid = false;
+            for (User user : activeUsers.values()) {
+                valid = valid || user.setActiveToken(token);
+            }
+            return valid;
+        } finally {
+            accountLock.unlock();
         }
-        return valid;
+    }
+
+    private User getUserFromToken(String token) {
+        try {
+            accountLock.lock();
+            for (User user : activeUsers.values()) {
+                for (String userToken : user.getTokens()) {
+                    if (userToken != null && userToken.equals(token)) {
+                        return user;
+                    }
+                }
+            }
+            return null;
+        } finally {
+            accountLock.unlock();
+        }
+    }
+
+    private void sortUserQueues(List<UserQueue> userQueues, int num) {
+        userQueues.sort(Comparator.comparingInt(o -> Math.abs(o.getRank() - num)));
+    }
+
+    private void createQueue(User user, boolean ranked) {
+        UserQueue userQueue = new UserQueue(ranked, user.getRank());
+        userQueue.enqueue(user);
+        userQueues.add(userQueue);
+        userQueue.start();
+    }
+
+    private boolean joinQueue(User user, UserQueue queue) {
+        if (queue.ended) return false;
+        queue.enqueue(user);
+        queue.setMeanRank();
+        System.out.println("User " + user.getUsername() + " joined queue!");
+        System.out.println("Queue: " + queue.queue.toString());
+        return true;
     }
 
 
@@ -154,26 +185,17 @@ public class Server {
         @Override
         public void run() {
             while (true) {
-                Socket clientSocket = null;
-
-                // Acquire lock and remove client from queue
-                queueLock.lock();
-                try {
-                    while (isEmpty()) {
-                        notEmpty.await(); // Wait if the queue is empty
-                    }
-                    clientSocket = clientQueue[queueHead];
-                    queueHead = (queueHead + 1) % clientQueue.length;
-                } catch (InterruptedException e) {
-                } finally {
-                    queueLock.unlock();
+                Socket clientSocket = clientQueue.dequeue();
+                if (clientSocket == null) {
+                    continue;
                 }
 
-                while(handleClientData(clientSocket));
+                while (handleClientData(clientSocket));
 
                 try {
                     clientSocket.close();
                 } catch (IOException e) {
+                    System.out.println("Error while closing client socket: " + e.getMessage());
                 }
             }
         }
@@ -188,6 +210,7 @@ public class Server {
                 String messageKey = clientMessage[0];
                 StringBuilder token = new StringBuilder();
                 User client = null;
+                System.out.println("Received: " + Arrays.toString(clientMessage));
 
                 switch (messageKey) {
                     case "LGN":
@@ -217,6 +240,7 @@ public class Server {
                         }
                         break;
                     case "GAM":
+                        /*
                         System.out.println(clientMessage[1] + " of type " + clientMessage[2] + " for token " + clientMessage[3]);
 
                         String action = clientMessage[1];
@@ -232,7 +256,24 @@ public class Server {
 
                         }
                         return false;
+                        */
+                        if (!validateRequest(clientMessage[3])) {
+                            writeMessage(printWriter, "ERR:Invalid token or user is not logged in!");
+                            break;
+                        }
 
+                        User user = getUserFromToken(clientMessage[3]);
+                        boolean result;
+
+                        if (clientMessage[1].equals("create")) {
+                            System.out.println("Creating game!");
+                            createQueue(user, clientMessage[2].equals("rank"));
+                            System.out.println("Game created!");
+                            result = true;
+                        } else result = clientSearchGame(user, clientMessage[2].equals("rank"), 50);
+
+                        writeMessage(printWriter, result ? "SUC" : "ERR:No games found!");
+                        break;
                     default:
                         System.out.println("Unknown request received!: " + messageKey);
                         writeMessage(printWriter, "ERR:Unknown request!");
@@ -249,69 +290,117 @@ public class Server {
 
         private boolean clientLogout(String token) {
             if (!validateRequest(token)) return false;
-            for (User user : activeUsers.values()) {
-                for (String userToken : user.getTokens()) {
-                    if (userToken.equals(token)) {
-                        activeUsers.remove(token);
-                        System.out.println("User " + user.getUsername() + " logged out!");
-                        return true;
+            try {
+                accountLock.lock();
+                for (User user : activeUsers.values()) {
+                    for (String userToken : user.getTokens()) {
+                        if (userToken.equals(token)) {
+                            activeUsers.remove(token);
+                            System.out.println("User " + user.getUsername() + " logged out!");
+                            return true;
+                        }
                     }
                 }
+                return false;
+            } finally {
+                accountLock.unlock();
             }
-            return false;
         }
 
-        private synchronized User clientRegister(String username, String password, Socket userSocket, StringBuilder retToken) {
-            User user = allUsers.get(username);
-            if (user != null) return null;
-
-            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-
-            String token = UUID.randomUUID().toString();
-            User newUser = new User(username, hashedPassword, token, 1000, userSocket);
-            newUser.addToken(token);
+        private User clientRegister(String username, String password, Socket userSocket, StringBuilder retToken) {
             try {
+                accountLock.lock();
+
+                User user = allUsers.get(username);
+                if (user != null) return null;
+
+                String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+                String token = UUID.randomUUID().toString();
+                User newUser = new User(username, hashedPassword, token, 1000, userSocket);
+                newUser.addToken(token);
                 // Open the file
-                FileWriter fileWriter = new FileWriter("src"+File.separator+"main"+File.separator+"java"+File.separator+"fe"+File.separator+"up"+File.separator+"pt"+File.separator+"users.csv", true);
+                FileWriter fileWriter = new FileWriter("src\\main\\java\\fe\\up\\pt\\users.csv", true);
                 BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
                 bufferedWriter.write(newUser.getUsername() + "," + newUser.getPassword() + "," + newUser.getRank() + "\n");
                 bufferedWriter.close();
-            } catch (IOException ignored) {
-                return null;
-            }
-            allUsers.put(username, newUser);
-            activeUsers.put(username, newUser);
-
-            retToken.append(token);
-            System.out.println("User " + username + " registered!");
-            return newUser;
-        }
 
 
-        private synchronized User clientLogin(String username, String password, Socket userSocket, StringBuilder retToken) {
-            User user = allUsers.get(username);
-
-            if (user != null && BCrypt.checkpw(password, user.getPassword())) {
-                System.out.println("User " + username + " logged in!");
-                String token = UUID.randomUUID().toString();
-
-                if (!user.addToken(token)) return null;
-
-                activeUsers.putIfAbsent(username, user);
-
-                user.setSocket(userSocket);
+                allUsers.put(username, newUser);
+                activeUsers.put(username, newUser);
 
                 retToken.append(token);
-
-                return user;
+                System.out.println("User " + username + " registered!");
+                return newUser;
+            } catch (IOException e) {
+                return null;
+            } finally {
+                accountLock.unlock();
             }
-
-            return null;
         }
 
-        private boolean isEmpty() {
-            return queueHead == queueTail;
+        private User clientLogin(String username, String password, Socket userSocket, StringBuilder retToken) {
+            try {
+                accountLock.lock();
+                User user = allUsers.get(username);
+                if (user != null && BCrypt.checkpw(password, user.getPassword())) {
+                    System.out.println("User " + username + " logged in!");
+                    String token = UUID.randomUUID().toString();
+
+                    if (!user.addToken(token)) return null;
+
+                    activeUsers.putIfAbsent(username, user);
+
+                    user.setSocket(userSocket);
+
+                    retToken.append(token);
+
+                    return user;
+                }
+
+                return null;
+            } finally {
+                accountLock.unlock();
+            }
         }
+    private boolean clientSearchGame(User user, boolean ranked, int range) {
+        if (ranked) {
+            long endTime = System.currentTimeMillis() + 120000; //two minutes
+            long interval = System.currentTimeMillis() + 10000; //ten seconds
+
+            while (System.currentTimeMillis() < endTime) {
+                var copyOfUserQueues = new ArrayList<>(userQueues);
+                sortUserQueues(copyOfUserQueues, user.getRank());
+                for (UserQueue userQueue : copyOfUserQueues) {
+                    int difference = Math.abs(userQueue.getRank() - user.getRank());
+                    if (difference > range) break;
+
+                    if (userQueue.isRanked()) {
+                        return joinQueue(user, userQueue);
+                    }
+
+                }
+
+                if (System.currentTimeMillis() > interval){
+                    range += 50;
+                    interval = System.currentTimeMillis() + 10000;
+                    System.out.println("Range: " + range);
+                }
+
+                copyOfUserQueues = null; //setting for garbage collection
+            }
+        } else {
+            long endTime = System.currentTimeMillis() + 120000; //two minutes
+
+            while (System.currentTimeMillis() < endTime) {
+                for (UserQueue userQueue : userQueues) {
+                    if (!userQueue.isRanked()) {
+                        return joinQueue(user, userQueue);
+                    }
+                }
+            }
+        }
+        return false;
     }
-
+    }
 }
