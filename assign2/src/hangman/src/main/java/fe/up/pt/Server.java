@@ -49,47 +49,15 @@ public class Server {
     }
 
     public void writeMessage(Socket clientSocket, String message) throws IOException {
-        int retryCount = 0;
         PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
-        while (retryCount < 3) { // Retry up to 3 times
 
-            try {
-                // Set a timeout of 5 seconds for receiving the ACK
-                clientSocket.setSoTimeout(5000);
-                printWriter.println(message);
-                printWriter.flush();
-
-                // Wait for ACK
-                String[] ack = readMessage(clientSocket);
-                if ("ACK".equals(ack[0])){
-                    System.out.println("ACK received!");
-                    clientSocket.setSoTimeout(0);
-                    // ACK received, break the loop
-                    break;
-                } else {
-                    // ACK not received, increment retry count and resend message
-                    retryCount++;
-                }
-            } catch (SocketTimeoutException e) {
-                // ACK not received within the timeout period, increment retry count and resend message
-                retryCount++;
-            }
-        }
-
-        if (retryCount == 3) {
-            throw new IOException("No ACK received after sending message: " + message);
-        }
+        printWriter.println(message);
+        printWriter.flush();
     }
 
     public String[] readMessage(Socket clientSocket) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
         String message = bufferedReader.readLine();
-
-        if (message.equals("ACK")) return new String[] {"ACK"};
-        // Send ACK
-        printWriter.println("ACK");
-        printWriter.flush();
 
         return message.split(":");
     }

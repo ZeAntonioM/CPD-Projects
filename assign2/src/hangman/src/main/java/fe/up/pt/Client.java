@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.Arrays;
 
 public class Client {
 
@@ -44,46 +45,14 @@ public class Client {
         if (messageKey.equals("LGN") || messageKey.equals("REG") || messageKey.equals("EXT")){
             this.setSessionToken(null);
         }
-        while (retryCount < 3) { // Retry up to 3 times
-            String token = getSessionToken() != null ? ":" + getSessionToken() : "";
 
-            try {
-                // Set a timeout of 5 seconds for receiving the ACK
-                socket.setSoTimeout(5000);
-                printWriter.println(message + token);
-                printWriter.flush();
-
-                // Wait for ACK
-                String ack = readMessage();
-                if ("ACK".equals(ack) || "SUC".equals(ack)) {
-                    // ACK received, break the loop
-                    System.out.println(ack + " received!\n");
-                    socket.setSoTimeout(0);
-                    break;
-                } else {
-                    // ACK not received, increment retry count and resend message
-                    retryCount++;
-                }
-            } catch (SocketTimeoutException e) {
-                // ACK not received within the timeout period, increment retry count and resend message
-                retryCount++;
-            }
-        }
-
-        if (retryCount == 3) {
-            throw new IOException("No ACK received after sending message: " + message);
-        }
+        String token = getSessionToken() != null ? ":" + getSessionToken() : "";
+        printWriter.println(message + token);
+        printWriter.flush();
     }
 
     private String readMessage() throws IOException {
         String message = bufferedReader.readLine();
-
-        if (message.equals("ACK")) return "ACK";
-
-        // Send ACK
-        if (message.split(":")[0].equals("CON")) System.out.println("HEREEEEEEE");
-        printWriter.println("ACK");
-        printWriter.flush();
 
         return message;
     }
@@ -91,6 +60,7 @@ public class Client {
     //TODO: Refactor this method to make sense, super spaguetti
     private void showMessageToClient(String message, String state){
         String[] data = message.split(":");
+        System.out.println("Received message: " + Arrays.toString(data) + "\n");
         if (data[0].equals("ERR")){
             System.out.println("Error: " + data[1] + "\n");
             this.state = state;
@@ -172,7 +142,23 @@ public class Client {
                             break;
                     }
                 } else {
-                    //TODO: implementar game loop
+                    switch (client.state) {
+                        case "waitingForPlayers":
+                            client.showMessageToClient(client.readMessage(), client.state);
+                            break;
+                        case "game":
+
+
+                            break;
+                        default:
+                            System.out.println("Invalid state!");
+                            break;
+
+
+                    }
+
+
+
                 }
             }
 
@@ -239,8 +225,9 @@ public class Client {
             this.printWriter = new PrintWriter(socket.getOutputStream(), true);
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            writeMessage("GIN:"+getSessionToken());
+            writeMessage("GIN");
             inGame = true;
+            this.state = "waitingForPlayers";
 
         } catch (IOException e) {
             e.printStackTrace();  // Print the stack trace of the exception

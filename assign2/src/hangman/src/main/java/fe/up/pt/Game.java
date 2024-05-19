@@ -6,10 +6,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.sql.Time;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.CountDownLatch;
@@ -63,47 +60,15 @@ public class Game {
 
 
     public void writeMessage(Socket clientSocket, String message) throws IOException {
-        int retryCount = 0;
         PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
-        while (retryCount < 3) { // Retry up to 3 times
 
-            try {
-                // Set a timeout of 5 seconds for receiving the ACK
-                clientSocket.setSoTimeout(5000);
-                printWriter.println(message);
-                printWriter.flush();
-
-                // Wait for ACK
-                String[] ack = readMessage(clientSocket);
-                if ("ACK".equals(ack[0])){
-                    System.out.println("ACK received!");
-                    clientSocket.setSoTimeout(0);
-                    // ACK received, break the loop
-                    break;
-                } else {
-                    // ACK not received, increment retry count and resend message
-                    retryCount++;
-                }
-            } catch (SocketTimeoutException e) {
-                // ACK not received within the timeout period, increment retry count and resend message
-                retryCount++;
-            }
-        }
-
-        if (retryCount == 3) {
-            throw new IOException("No ACK received after sending message: " + message);
-        }
+        printWriter.println(message);
+        printWriter.flush();
     }
 
     public String[] readMessage(Socket clientSocket) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
         String message = bufferedReader.readLine();
-
-        if (message.equals("ACK")) return new String[] {"ACK"};
-        // Send ACK
-        printWriter.println("ACK");
-        printWriter.flush();
 
         return message.split(":");
 
@@ -176,6 +141,7 @@ public class Game {
     }
 
     private void start() {
+
         shuffle(this.players);
 
         for (User player : this.players) {
@@ -186,11 +152,11 @@ public class Game {
 
     }
 
-    private void gameLoop() {
+    private void gameLoop() throws IOException {
         while (this.running) {
             for (User player : this.players) {
                 sendGameMessage("yourTurn", player);
-                // receive message
+                treatGuess(readMessage(player.getSocket())[1], player);
             }
         }
     }
@@ -254,7 +220,6 @@ public class Game {
     }
 
     private class ClientHandler implements Runnable {
-        private String state = "wait"; // wait, notMyTurn, myTurn, end
         @Override
         public void run() {
             while (true) {
@@ -277,6 +242,7 @@ public class Game {
             try {
                 String[] clientMessage = readMessage(clientSocket);
                 String messageKey = clientMessage[0];
+                System.out.println("Received Game: " + Arrays.toString(clientMessage));
 
                 switch (messageKey) {
                     case "GIN":
