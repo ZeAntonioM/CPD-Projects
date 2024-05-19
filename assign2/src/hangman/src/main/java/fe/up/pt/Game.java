@@ -21,7 +21,7 @@ public class Game {
     //Server side
     private final ReentrantLock queueLock = new ReentrantLock();
     private final Condition notEmpty = queueLock.newCondition();
-    private final Socket[] clientQueue = new Socket[10];
+    private final Queue<Socket> clientQueue = new Queue<>();
     private int queueHead = 0;
     private int queueTail = 0;
 
@@ -94,18 +94,12 @@ public class Game {
 
             while (System.currentTimeMillis() < endTime) {
                 serverSocket.setSoTimeout((int) (endTime - System.currentTimeMillis())); //Timeout of 2 seconds
-                Socket clientSocket = serverSocket.accept();
+                    // Wait for a new connection
+                    Socket clientSocket = serverSocket.accept();
 
-                // Acquire lock and add client to queue
-                queueLock.lock();
-                try {
-                    clientQueue[queueTail] = clientSocket;
-                    queueTail = (queueTail + 1) % clientQueue.length; // Wrap-around logic
+                    // Acquire lock and add client to queue
+                    clientQueue.enqueue(clientSocket);
                     Thread.ofVirtual().start(new ClientHandler());
-                    notEmpty.signal(); // Signal the waiting client handling thread
-                } finally {
-                    queueLock.unlock();
-                }
 
             }
 
@@ -240,19 +234,9 @@ public class Game {
         @Override
         public void run() {
             while (true) {
-                Socket clientSocket = null;
-
-                // Acquire lock and remove client from queue
-                queueLock.lock();
-                try {
-                    while (isEmpty()) {
-                        notEmpty.await(); // Wait if the queue is empty
-                    }
-                    clientSocket = clientQueue[queueHead];
-                    queueHead = (queueHead + 1) % clientQueue.length;
-                } catch (InterruptedException e) {
-                } finally {
-                    queueLock.unlock();
+                Socket clientSocket = clientQueue.dequeue();
+                if (clientSocket == null) {
+                    continue;
                 }
 
                 while (handleClientData(clientSocket)) ;
