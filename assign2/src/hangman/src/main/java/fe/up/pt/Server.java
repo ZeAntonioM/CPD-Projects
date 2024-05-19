@@ -99,12 +99,15 @@ public class Server {
                 String word = data[1];
                 List<String> words = wordList.get(theme);
 
+                String themeLower = theme.toLowerCase();
+                String wordLower = word.toLowerCase();
+
                 if (words == null) {
                     words = new ArrayList<>();
-                    wordList.put(theme, words);
+                    wordList.put(themeLower, words);
                 }
                 else {
-                    words.add(word);
+                    words.add(wordLower);
                 }
 
             }
@@ -322,7 +325,7 @@ public class Server {
                 User newUser = new User(username, hashedPassword, token, 1000, userSocket);
                 newUser.addToken(token);
                 // Open the file
-                FileWriter fileWriter = new FileWriter("src\\main\\java\\fe\\up\\pt\\users.csv", true);
+                FileWriter fileWriter = new FileWriter("src"+File.separator+"main"+File.separator+"java"+File.separator+"fe"+File.separator+"up"+File.separator+"pt"+File.separator+"users.csv", true);
                 BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
                 bufferedWriter.write(newUser.getUsername() + "," + newUser.getPassword() + "," + newUser.getRank() + "\n");
                 bufferedWriter.close();
