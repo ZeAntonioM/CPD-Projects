@@ -18,6 +18,7 @@ public class Client {
     private String sessionToken;
     private boolean inGame = false;
     public String state = "loginMenu"; // "mainMenu", "gameMenu", "game"
+    public int rank = 0;
 
     public Client(String address, int port) throws IOException{
         this.address = address;
@@ -56,17 +57,17 @@ public class Client {
         return message;
     }
 
-    //TODO: Refactor this method to make sense, super spaguetti
     private void showMessageToClient(String message, String state){
         String[] data = message.split(":");
-        System.out.println("Received message: " + Arrays.toString(data) + "\n");
         if (data[0].equals("ERR")){
             System.out.println("Error: " + data[1] + "\n");
             this.state = state;
         }
         else if (data[0].equals("SUC") && data.length > 1) {
-            System.out.println("Success!\n");
             this.setSessionToken(data[1]);
+            if ( data.length > 2){
+                this.rank = Integer.parseInt(data[2]);
+            }
             this.state = "mainMenu";
 
         } else if (data[0].equals("CON")) {
@@ -74,7 +75,6 @@ public class Client {
             this.address = data[2];
             this.port = Integer.parseInt(data[1]);
             this.state = "connectToGame";
-
 
         } else if (data[0].equals("GAM")) {
             switch (data[1]) {
@@ -84,19 +84,33 @@ public class Client {
                     break;
                 case "start":
                     System.out.println("Game started!\n");
+                    System.out.println("Theme: " + data[2] +"\n");
+                    System.out.println("Word: " + data[3]);
                     this.state = "game";
                     break;
                 case "end":
                     System.out.println("Game ended!\n");
+                    connectToServer(data[2], Integer.parseInt(data[3]));
                     this.inGame = false;
                     this.state = "mainMenu";
                     break;
                 case "turn":
-                    playerTurn(data[2]);
+                    playerTurn(data[2], data[3]);
+                    break;
+                case "wrongGuess":
+                    System.out.println("\nWrong guess by " + data[5] + '\n');
+                    System.out.println("Theme: " + data[4]);
+                    System.out.println("Word: " + data[3]);
+                    break;
+                case "correctGuess":
+                    System.out.println("\nCorrect guess by " + data[5] + '\n');
+                    System.out.println("Theme: " + data[4]);
+                    System.out.println("Word: " + data[3]);
                     break;
                 default:
                     System.out.println("Invalid option!\n");
                     break;
+
             }
 
         } else if (data[0].equals("SUC")) {
@@ -106,12 +120,38 @@ public class Client {
         }
     }
 
-    private void playerTurn(String token) {
+
+    private boolean validateGuess(String guess, String guessedWord) {
+
+        if (guess.isEmpty()) {
+            System.out.println("Invalid Guess. Cannot be empty!");
+            return false;
+        }
+        if ((guess.length() != guessedWord.length()) && (guess.length() != 1) ) {
+            System.out.println("Invalid Guess. Must be a letter or the full word!");
+            return false;
+        }
+        for ( char c : guess.toCharArray()) {
+            if (!Character.isLetter(c) && !Character.isSpaceChar(c)) {
+                System.out.println("Invalid Guess. Cannot contain numbers or special characters!");
+                return false;
+            }
+        }
+        return true;
+
+    }
+
+
+    private void playerTurn(String token, String guessedWord) {
         if (token.equals(this.getSessionToken())) {
             Scanner scanner = new Scanner(System.in);
             System.out.println("It's your turn!\n");
-            System.out.println("Enter your guess: ");
-            String guess = scanner.nextLine();
+
+            String guess = "";
+            do {
+                System.out.println("Enter your guess: ");
+                guess = scanner.nextLine();
+            } while (!validateGuess(guess, guessedWord));
 
             try {
                 writeMessage("GGS:" + guess);
@@ -177,12 +217,7 @@ public class Client {
                         default:
                             System.out.println("Invalid state!");
                             break;
-
-
                     }
-
-
-
                 }
             }
 
@@ -259,6 +294,28 @@ public class Client {
         }
     }
 
+    public void connectToServer(String host, int port) {
+        try {
+            // Close the old socket
+            if (this.socket != null) {
+                this.socket.close();
+            }
+
+            this.socket = new Socket(host, port);
+            this.socket = new Socket(host, port);
+            this.printWriter = new PrintWriter(socket.getOutputStream(), true);
+            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            writeMessage("RAF");
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error while reconnecting to the server: " + e.getMessage());
+        }
+
+    }
+
 
 
     public void mainMenu(BufferedReader reader) throws IOException {
@@ -295,7 +352,7 @@ public class Client {
         String message;
         Client client = this;
         while (true) {
-            System.out.println("Ranked [1], Normal [2] or Back [3]?");
+            System.out.println("Ranked [1] (" + this.rank+ ") , Normal [2] or Back [3]?");
             message = reader.readLine();
             String response = message.equals("1") ? (isNewGame ? "GAM:create:rank" : "GAM:join:rank")
                     : message.equals("2") ? (isNewGame ? "GAM:create:normal" : "GAM:join:normal")

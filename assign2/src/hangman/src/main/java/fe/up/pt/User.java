@@ -84,4 +84,8 @@ public class User {
         this.socket = userSocket;
     }
 
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
+
 }

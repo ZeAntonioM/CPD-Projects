@@ -12,6 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Server {
     private final Queue<Socket> clientQueue = new Queue<>();
     private final ReentrantLock accountLock = new ReentrantLock();
+    private final ReentrantLock fileLock = new ReentrantLock();
     private final ReentrantLock queueLock = new ReentrantLock();
     private final String host;
     private int port = 12345;
@@ -22,6 +23,9 @@ public class Server {
     private int gameID = 0;
     private List<UserQueue> userQueues = new ArrayList<>();
     private int basePort = 12346;
+    private List<Game> games = new ArrayList<>();
+    private HashMap<String, Integer> ranks = readRanks();
+
     public Server(int port, String host) {
         this.port = port;
         this.host = host;
@@ -37,7 +41,8 @@ public class Server {
 
         // Start the dedicated client handling thread
         System.out.println("Server started on port " + this.port + "!");
-        Thread.ofVirtual().start(new QueueDispacher(true));
+        Thread.ofVirtual().start(new QueueDispacher());
+        Thread.ofVirtual().start(new GameDispacher());
         while (true) {
             // Wait for a new connection
             Socket clientSocket = serverSocket.accept();
@@ -49,7 +54,9 @@ public class Server {
     }
 
     public void writeMessage(Socket clientSocket, String message) throws IOException {
+
         PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
+
 
         printWriter.println(message);
         printWriter.flush();
@@ -61,6 +68,7 @@ public class Server {
 
         return message.split(":");
     }
+
     private HashMap<String, User> readUsers() {
         HashMap<String, User> users = new HashMap<>();
         String line = "";
@@ -118,6 +126,38 @@ public class Server {
 
         return wordList;
     }
+
+    private HashMap<String, Integer> readRanks() {
+        HashMap<String, Integer> ranks = new HashMap<String, Integer>();
+
+        for (User user : allUsers.values()) {
+            ranks.put(user.getUsername(), user.getRank());
+        }
+
+        return ranks;
+    }
+
+    private void writeRank() {
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("username,password,rank\n");
+
+            for (User user : allUsers.values()) {
+                sb.append(user.getUsername()).append(",")
+                        .append(user.getPassword()).append(",")
+                        .append(user.getRank()).append("\n");
+            }
+
+            FileWriter fileWriter = new FileWriter("src"+File.separator+"main"+File.separator+"java"+File.separator+"fe"+File.separator+"up"+File.separator+"pt"+File.separator+"users.csv", false);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(sb.toString());
+            bufferedWriter.close();
+
+        } catch (IOException e) {
+            System.out.println("Error while writing to file: " + e.getMessage());
+        }
+    }
+
 
     private String[] getRandomThemeWord() {
         List<String> keys = Collections.list(dictionaryWords.keys());
@@ -196,8 +236,8 @@ public class Server {
         }
     }
 
+
     private class ClientHandler implements Runnable {
-        private boolean inGame = false;
         private String state = "mainMenu"; //mainMenu, gameMenu
         @Override
         public void run() {
@@ -208,11 +248,6 @@ public class Server {
                 }
 
                 while (handleClientData(clientSocket));
-
-                if (inGame){ //if client in game, lets not close socket and wait for the client to return from game
-                    while(inGame);
-                    continue;
-                }
 
                 try {
                     clientSocket.close();
@@ -228,7 +263,6 @@ public class Server {
                 String messageKey = clientMessage[0];
                 StringBuilder token = new StringBuilder();
                 User client = null;
-                System.out.println("Received: " + Arrays.toString(clientMessage));
 
                 switch(state){
                     case "mainMenu":
@@ -236,7 +270,7 @@ public class Server {
                             case "LGN":
                                 client = clientLogin(clientMessage[1], clientMessage[2], clientSocket, token);
                                 if (client != null) {
-                                    writeMessage(clientSocket, "SUC:" + token);
+                                    writeMessage(clientSocket, "SUC:" + token + ":" + client.getRank());
                                     state = "gameMenu";
                                 } else {
                                     writeMessage(clientSocket, "ERR:Invalid credentials!");
@@ -245,7 +279,7 @@ public class Server {
                             case "REG":
                                 client = clientRegister(clientMessage[1], clientMessage[2], clientSocket, token);
                                 if (client != null) {
-                                    writeMessage(clientSocket, "SUC:" + token);
+                                    writeMessage(clientSocket, "SUC:" + token + ":" + client.getRank());
                                     state = "gameMenu";
                                 } else {
                                     writeMessage(clientSocket, "ERR:Username already exists!");
@@ -254,6 +288,11 @@ public class Server {
                             case "EXT":
                                 writeMessage(clientSocket, "SUC");
                                 return false;
+                            case "RAF":
+                                allUsers.get(clientMessage[1]).setSocket(clientSocket);
+                                writeMessage(clientSocket, "SUC");
+                                state = "gameMenu";
+                                break;
                             default:
                                 System.out.println("Unknown request received!: " + messageKey);
                                 writeMessage(clientSocket, "ERR:Unknown request!");
@@ -285,8 +324,7 @@ public class Server {
                                     System.out.println("Game created!");
                                     result = true;
                                 } else result = clientSearchGame(user, clientMessage[2].equals("rank"), 50);
-                                this.inGame = result;
-                                writeMessage(clientSocket, result ? "SUC" : "ERR:No games found!");
+                                writeMessage(clientSocket, result ? "SUC": "ERR:No games found!");
                                 return !result;
                             default:
                                 System.out.println("Unknown request received!: " + messageKey);
@@ -344,6 +382,7 @@ public class Server {
 
                 allUsers.put(username, newUser);
                 activeUsers.put(username, newUser);
+                ranks.put(username, 1000);
 
                 retToken.append(token);
                 System.out.println("User " + username + " registered!");
@@ -379,59 +418,58 @@ public class Server {
                 accountLock.unlock();
             }
         }
-    private boolean clientSearchGame(User user, boolean ranked, int range) {
-        if (ranked) {
-            range = range-50;
-            long endTime = System.currentTimeMillis() + 120000; //two minutes
-            long interval = System.currentTimeMillis(); //ten seconds
 
-            while (System.currentTimeMillis() < endTime) {
-                var copyOfUserQueues = new ArrayList<>(userQueues);
-                sortUserQueues(copyOfUserQueues, user.getRank());
-                if (System.currentTimeMillis() > interval) {
-                    range += 50;
-                    interval = System.currentTimeMillis() + 10000;
-                    System.out.println("Range: " + range);
+        private boolean clientSearchGame(User user, boolean ranked, int range) {
+            if (ranked) {
+                range = range-50;
+                long endTime = System.currentTimeMillis() + 120000; //two minutes
+                long interval = System.currentTimeMillis(); //ten seconds
 
-                    try{
-                        queueLock.lock();
-                        for (UserQueue userQueue : copyOfUserQueues) {
-                            if (userQueue.isRanked() && Math.abs(userQueue.getRank() - user.getRank()) <= range){
-                                return joinQueue(user, userQueue);
+                while (System.currentTimeMillis() < endTime) {
+                    var copyOfUserQueues = new ArrayList<>(userQueues);
+                    sortUserQueues(copyOfUserQueues, user.getRank());
+                    if (System.currentTimeMillis() > interval) {
+                        range += 50;
+                        interval = System.currentTimeMillis() + 10000;
+
+                        try{
+                            queueLock.lock();
+                            for (UserQueue userQueue : copyOfUserQueues) {
+                                if (userQueue.isRanked() && Math.abs(userQueue.getRank() - user.getRank()) <= range){
+                                    return joinQueue(user, userQueue);
+                                }
                             }
+                        } finally {
+                            queueLock.unlock();
                         }
-                    } finally {
-                        queueLock.unlock();
+                    }
+
+
+                    copyOfUserQueues = null; //setting for garbage collection
+                }
+            } else {
+                long endTime = System.currentTimeMillis() + 120000; //two minutes
+                long interval = System.currentTimeMillis();
+
+                while (System.currentTimeMillis() < endTime) {
+                    if (System.currentTimeMillis() > interval) {
+                        range += 50;
+                        interval = System.currentTimeMillis() + 1000;
+                        try{
+                            queueLock.lock();
+                            for (UserQueue userQueue : userQueues) {
+                                if (!userQueue.isRanked()) {
+                                    return joinQueue(user, userQueue);
+                                }
+                            }
+                        } finally {
+                            queueLock.unlock();
+                        }
                     }
                 }
-
-
-                copyOfUserQueues = null; //setting for garbage collection
             }
-        } else {
-            long endTime = System.currentTimeMillis() + 120000; //two minutes
-            long interval = System.currentTimeMillis();
-
-            while (System.currentTimeMillis() < endTime) {
-                if (System.currentTimeMillis() > interval) {
-                    range += 50;
-                    interval = System.currentTimeMillis() + 1000;
-                    System.out.println("Range: " + range);
-                    try{
-                        queueLock.lock();
-                        for (UserQueue userQueue : userQueues) {
-                            if (!userQueue.isRanked()) {
-                                return joinQueue(user, userQueue);
-                            }
-                        }
-                    } finally {
-                        queueLock.unlock();
-                    }
-                }
-            }
+            return false;
         }
-        return false;
-    }
     }
 
     public HashMap<String, User> getUserTokens() {
@@ -443,10 +481,6 @@ public class Server {
     }
 
     private class QueueDispacher implements Runnable {
-        private boolean ranked;
-        public QueueDispacher(boolean ranked){
-            this.ranked = ranked;
-        }
         @Override
         public void run() {
             System.out.println("Queue dispatcher started!");
@@ -458,7 +492,8 @@ public class Server {
                         String theme = themeWord[0];
                         String word = themeWord[1];
                         HashMap<String, User> tokenUsers = getUserTokens();
-                        Game game = new Game(basePort++, "localhost", tokenUsers, ranked, theme, word);
+                        Game game = new Game(basePort, host, basePort++, "localhost", tokenUsers, userQueue.isRanked(), theme, word, ranks);
+                        games.add(game);
                         Thread.ofVirtual().start(game::run);
 
                         for (User user : userQueue.queue) {
@@ -475,6 +510,38 @@ public class Server {
                         } finally {
                             queueLock.unlock();
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    private class GameDispacher implements Runnable {
+        @Override
+        public void run() {
+            System.out.println("Game dispatcher started!");
+            while (true) {
+                var localGames = new ArrayList<>(games);
+                for (Game game : localGames) {
+                    if (!game.isRunning()) {
+
+                        ranks = game.getRanks();
+
+                        for (User user: game.getPlayers()) {
+                            Integer rank = ranks.get(user.getUsername());
+                            user.setRank(rank);
+                        }
+                        try {
+                            fileLock.lock();
+                            writeRank();
+                            ranks = readRanks();
+
+                            games.remove(game);
+                        }
+                        finally {
+                            fileLock.unlock();
+                        }
+
                     }
                 }
             }

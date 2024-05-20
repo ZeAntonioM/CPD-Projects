@@ -22,6 +22,8 @@ public class Game {
     private final Queue<Socket> clientQueue = new Queue<>();
     private int queueHead = 0;
     private int queueTail = 0;
+    private String serverHost;
+    private int serverPort;
 
     // Game
     private final String host;
@@ -34,19 +36,22 @@ public class Game {
     private boolean running;
     private String guessedWord;
     private HashMap<String, User> gameUsers;
-    private List<Integer> ranks = new ArrayList<Integer>();
+    private HashMap<String, Integer> ranks;
     private CyclicBarrier barrier;
 
-    public Game(int port, String host, HashMap<String, User> gameUsers, boolean ranked, String theme, String word) {
+    public Game(int serverPort, String serverHost, int gamePort, String gameHost, HashMap<String, User> gameUsers, boolean ranked, String theme, String word, HashMap<String, Integer> ranks) {
 
-        this.port = port;
-        this.host = host;
+        this.serverPort = serverPort;
+        this.serverHost = serverHost;
+        this.port = gamePort;
+        this.host = gameHost;
 
         this.gameUsers = gameUsers;
         this.ranked = ranked;
         this.theme = theme;
         this.word = word;
         this.guessedWord = this.word.replaceAll("[a-zA-Z]", "_");
+        this.ranks = ranks;
 
         this.running = true;
     }
@@ -54,11 +59,18 @@ public class Game {
     public String getHost() {
         return host;
     }
-
     public int getPort() {
         return port;
     }
-
+    public boolean isRunning() {
+        return running;
+    }
+    public List<User> getPlayers() {
+        return players;
+    }
+    public HashMap<String, Integer> getRanks() {
+        return ranks;
+    }
 
 
     public void writeMessage(Socket clientSocket, String message) throws IOException {
@@ -123,7 +135,7 @@ public class Game {
             long endTime = System.currentTimeMillis() + 10000;
 
             while (System.currentTimeMillis() < endTime) {
-                serverSocket.setSoTimeout((int) (endTime - System.currentTimeMillis())); //Timeout of 2 seconds
+                serverSocket.setSoTimeout((int) (endTime - System.currentTimeMillis())); //Timeout of 10 seconds
                     // Wait for a new connection
                     Socket clientSocket = serverSocket.accept();
 
@@ -146,13 +158,7 @@ public class Game {
 
         shuffle(this.players);
 
-        int i = 0;
-        for (User player : this.players) {
-            this.ranks.add(player.getRank());
-            i++;
-        }
-
-        this.barrier = new CyclicBarrier(i + 1);
+        this.barrier = new CyclicBarrier(this.players.size()+1);
         sendGameMessageAll("start:" + this.theme + ":" + this.guessedWord);
 
     }
@@ -161,7 +167,7 @@ public class Game {
         int i = 0;
         while (this.running) {
             User player = this.players.get(i);
-            sendGameMessageAll("turn:" + player.getActiveToken());
+            sendGameMessageAll("turn:" + player.getActiveToken() + ":" + guessedWord);
             try {
                 barrier.await();
             } catch (Exception e) {
@@ -172,7 +178,7 @@ public class Game {
     }
 
     private void end() {
-        sendGameMessageAll("end");
+        sendGameMessageAll("end:" + serverHost + ":" + serverPort);
     }
 
     private void treatGuess(String guess, User player) {
@@ -185,12 +191,12 @@ public class Game {
                 if (ranked) this.updateRank(player, 20);
 
                 this.running = false;
-                this.sendGameMessageAll("correctGuess:" + guess + ":" + this.word + ":" + player.getUsername());
+                this.sendGameMessageAll("correctGuess:" + guess + ":" + this.word + ":" + this.theme + ":" + player.getUsername());
             }
             else {
                 if (ranked) this.updateRank(player, -10);
 
-                this.sendGameMessageAll("wrongGuess:" + guess + ":" + this.guessedWord + ":" + player.getUsername());
+                this.sendGameMessageAll("wrongGuess:" + guess + ":" + this.guessedWord + ":" + this.theme + ":" + player.getUsername());
             }
 
         }
@@ -202,12 +208,12 @@ public class Game {
                 this.updateGuessedWord(guess);
                 if (this.guessedWord.equals(this.word)) this.running = false;
 
-                this.sendGameMessageAll("correctGuess:" + guess + ":" + this.guessedWord + ":" + player.getUsername());
+                this.sendGameMessageAll("correctGuess:" + guess + ":" + this.guessedWord + ":" + this.theme + ":" + player.getUsername());
             }
             else {
                 if (ranked) this.updateRank(player, -3);
 
-                this.sendGameMessageAll("wrongGuess:" + guess + ":" + this.guessedWord + ":" + player.getUsername());
+                this.sendGameMessageAll("wrongGuess:" + guess + ":" + this.guessedWord + ":" + this.theme + ":" + player.getUsername());
             }
 
         }
@@ -215,8 +221,9 @@ public class Game {
     }
 
     public void updateRank(User player, int points) {
-            int playerNumber = this.players.indexOf(player);
-            this.ranks.set(playerNumber, this.ranks.get(playerNumber) + points);
+        System.out.println("is Ranked");
+        String username = player.getUsername();
+        this.ranks.put(username, this.ranks.get(username) + points);
     }
 
     public void updateGuessedWord(String letter) {
@@ -250,7 +257,6 @@ public class Game {
             try {
                 String[] clientMessage = readMessage(clientSocket);
                 String messageKey = clientMessage[0];
-                System.out.println("Received Game: " + Arrays.toString(clientMessage));
 
                 switch (messageKey) {
                     case "GIN":
