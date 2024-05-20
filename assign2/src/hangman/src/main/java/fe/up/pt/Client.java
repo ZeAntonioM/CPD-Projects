@@ -90,9 +90,6 @@ public class Client {
                     break;
                 case "end":
                     System.out.println("Game ended!\n");
-                    connectToServer(data[2], Integer.parseInt(data[3]));
-                    this.inGame = false;
-                    this.state = "mainMenu";
                     break;
                 case "turn":
                     playerTurn(data[2], data[3]);
@@ -301,7 +298,6 @@ public class Client {
                 this.socket.close();
             }
 
-            this.socket = new Socket(host, port);
             this.socket = new Socket(host, port);
             this.printWriter = new PrintWriter(socket.getOutputStream(), true);
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));

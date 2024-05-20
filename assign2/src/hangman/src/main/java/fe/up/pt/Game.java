@@ -221,7 +221,6 @@ public class Game {
     }
 
     public void updateRank(User player, int points) {
-        System.out.println("is Ranked");
         String username = player.getUsername();
         this.ranks.put(username, this.ranks.get(username) + points);
     }

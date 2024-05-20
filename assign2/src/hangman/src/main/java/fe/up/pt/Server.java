@@ -1,7 +1,8 @@
 package fe.up.pt;
 
-import org.mindrot.jbcrypt.BCrypt;
-
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -238,6 +239,7 @@ public class Server {
 
 
     private class ClientHandler implements Runnable {
+        private boolean inGame = false;
         private String state = "mainMenu"; //mainMenu, gameMenu
         @Override
         public void run() {
@@ -248,6 +250,11 @@ public class Server {
                 }
 
                 while (handleClientData(clientSocket));
+
+                if (inGame){ //if client in game, lets not close socket and wait for the client to return from game
+                    while(inGame);
+                    continue;
+                }
 
                 try {
                     clientSocket.close();
@@ -288,11 +295,6 @@ public class Server {
                             case "EXT":
                                 writeMessage(clientSocket, "SUC");
                                 return false;
-                            case "RAF":
-                                allUsers.get(clientMessage[1]).setSocket(clientSocket);
-                                writeMessage(clientSocket, "SUC");
-                                state = "gameMenu";
-                                break;
                             default:
                                 System.out.println("Unknown request received!: " + messageKey);
                                 writeMessage(clientSocket, "ERR:Unknown request!");
@@ -324,6 +326,7 @@ public class Server {
                                     System.out.println("Game created!");
                                     result = true;
                                 } else result = clientSearchGame(user, clientMessage[2].equals("rank"), 50);
+                                this.inGame = result;
                                 writeMessage(clientSocket, result ? "SUC": "ERR:No games found!");
                                 return !result;
                             default:
@@ -361,6 +364,17 @@ public class Server {
             }
         }
 
+        public static String hash(String msg) throws NoSuchAlgorithmException {
+            MessageDigest algorithm = MessageDigest.getInstance("SHA-256");
+            byte[] messageDigest = algorithm.digest(msg.getBytes(StandardCharsets.UTF_8));
+
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : messageDigest) {
+                hexString.append(String.format("%02X", 0xFF & b));
+            }
+            return hexString.toString();
+        }
+
         private User clientRegister(String username, String password, Socket userSocket, StringBuilder retToken) {
             try {
                 accountLock.lock();
@@ -368,7 +382,12 @@ public class Server {
                 User user = allUsers.get(username);
                 if (user != null) return null;
 
-                String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+                String hashedPassword = null;
+                try {
+                    hashedPassword = hash(password);
+                } catch (NoSuchAlgorithmException e) {
+                    throw new RuntimeException(e);
+                }
 
                 String token = UUID.randomUUID().toString();
                 User newUser = new User(username, hashedPassword, token, 1000, userSocket);
@@ -398,19 +417,23 @@ public class Server {
             try {
                 accountLock.lock();
                 User user = allUsers.get(username);
-                if (user != null && BCrypt.checkpw(password, user.getPassword())) {
-                    System.out.println("User " + username + " logged in!");
-                    String token = UUID.randomUUID().toString();
+                try {
+                    if (user != null && user.getPassword().equals(hash(password))) {
+                        System.out.println("User " + username + " logged in!");
+                        String token = UUID.randomUUID().toString();
 
-                    if (!user.addToken(token)) return null;
+                        if (!user.addToken(token)) return null;
 
-                    activeUsers.putIfAbsent(username, user);
+                        activeUsers.putIfAbsent(username, user);
 
-                    user.setSocket(userSocket);
+                        user.setSocket(userSocket);
 
-                    retToken.append(token);
+                        retToken.append(token);
 
-                    return user;
+                        return user;
+                    }
+                } catch (NoSuchAlgorithmException e) {
+                    throw new RuntimeException(e);
                 }
 
                 return null;
@@ -492,7 +515,7 @@ public class Server {
                         String theme = themeWord[0];
                         String word = themeWord[1];
                         HashMap<String, User> tokenUsers = getUserTokens();
-                        Game game = new Game(basePort, host, basePort++, "localhost", tokenUsers, userQueue.isRanked(), theme, word, ranks);
+                        Game game = new Game(basePort, host, ++basePort, "localhost", tokenUsers, userQueue.isRanked(), theme, word, ranks);
                         games.add(game);
                         Thread.ofVirtual().start(game::run);
 
