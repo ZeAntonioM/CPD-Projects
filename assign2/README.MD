@@ -1,3 +1,7 @@
+# Requirements
+
+1. java-sdk-21 installed
+
 # Instructions on how to run the project
 
 1. Open src/hangman in the terminal
