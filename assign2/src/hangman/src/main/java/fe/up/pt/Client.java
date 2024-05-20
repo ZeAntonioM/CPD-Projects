@@ -90,6 +90,7 @@ public class Client {
                     break;
                 case "end":
                     System.out.println("Game ended!\n");
+                    this.state="close";
                     break;
                 case "turn":
                     playerTurn(data[2], data[3]);
